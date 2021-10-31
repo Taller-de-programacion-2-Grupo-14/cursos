@@ -1,8 +1,8 @@
-from typing import Optional
 from fastapi import FastAPI
-from pydantic import BaseModel, ValidationError, validator
+from pydantic import BaseModel, validator
 from models.Course import Course
 from resources.Course import CourseController
+
 
 class CourseCreateSchema(BaseModel):
     course_name: str
@@ -36,6 +36,17 @@ courseController = CourseController(courseService)
 def create_course(createData: CourseCreateSchema):
     return courseController.handle_course_create_post(createData.dict())
 
+
 @app.get('/course/{course_id}')
 def get_course(course_id: int):
     return courseController.handle_get_course(course_id)
+
+
+@app.get('/courses')
+def get_courses():
+    return courseController.handle_get_courses()
+
+
+@app.delete('/course/{course_id}')
+def delete_course(course_id: int):
+    return courseController.handle_delete_course(course_id)
