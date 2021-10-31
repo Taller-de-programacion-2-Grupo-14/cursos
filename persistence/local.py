@@ -5,7 +5,7 @@ class DB:
 
     def addCourse(self, courseData):
         if courseData['course_name'] in self._getCourseNames():
-            raise Exception
+            raise ZeroDivisionError  # solo para probar algo
         self.db[self.id] = courseData
         self.id += 1
 

@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 
-class EditCourseInfoSchema:
+class EditCourseInfoSchema(BaseModel):
     course_id: int
     user_id: int
     course_name: str = Field(min_length=1, max_length=255)
