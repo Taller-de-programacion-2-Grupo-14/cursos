@@ -20,3 +20,6 @@ toml==0.10.2
 typing-extensions==3.10.0.2
 urllib3==1.26.7
 wsproto==1.0.0
+Flask==1.0.3
+Flask-RESTful==0.3.7
+httpie==1.0.3
