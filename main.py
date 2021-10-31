@@ -1,28 +1,41 @@
-from flask import Flask
-from flask_restful import Api
-from resources.Course import CourseGetter, CourseController
+from typing import Optional
+from fastapi import FastAPI
+from pydantic import BaseModel, ValidationError, validator
 from models.Course import Course
+from resources.Course import CourseController
 
-# from resources.recipe import RecipeListResource
-# from resources.recipeResource import RecipeResource
-# from resources.recipePublic import RecipePublishResource
+class CourseCreateSchema(BaseModel):
+    course_name: str
+    course_description: str
+    hashtags: str
+    course_type: str
+    amount_exams: int
+    subscription: str
+    location: str
 
-app = Flask(__name__)
-api = Api(app)
+    @validator('course_name')
+    def name_must_have_len_greater_than_3(cls, v):
+        if len(v) <= 3:
+            raise ValueError('must be > 3')
+        return v.title()
 
+
+# ToDo:
+# Crear diretorio validators y los importamos
+# Crear todos los esquemas para los distintos tipos de post
+# Cambiar nombre de los metodos
+# Modificar como se devuelven los errores y las cosas en general
+# Hacer tests
+
+app = FastAPI()
 courseService = Course({})
-api.add_url_rule(CourseController, '/courses/create', resource_class_kwargs={'course': courseService})
-api.add_url(CourseGetter, '/courses/view/<int:course_id>', resource_class_kwargs={'course': courseService})
-
-# Sacar view
-# Aca ponemos los endpoints
-# api.add_resource(RecipeListResource, '/recipes')
-# api.add_resource(RecipeResource, '/recipes/<int:recipe_id>', resource_class_kwargs={'sarasa': 'recipe not encontrada'})
-# api.add_resource(RecipePublishResource, '/recipes/<int:recipe_id>/publish')
+courseController = CourseController(courseService)
 
 
+@app.post('/course/create')
+def create_course(createData: CourseCreateSchema):
+    return courseController.handle_course_create_post(createData.dict())
 
-if __name__ == '__main__':
-    app.run(port=5000, debug=True)
-
-# curl -i -X POST localhost:5000/courses/create -H "Content-Type: application/json" -d '{"course_name":"Cheese Pizza"}'
+@app.get('/course/{course_id}')
+def get_course(course_id: int):
+    return courseController.handle_get_course(course_id)

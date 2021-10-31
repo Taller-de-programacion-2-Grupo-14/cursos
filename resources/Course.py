@@ -1,22 +1,10 @@
-from flask import request
-from flask_restful import Resource
-from http import HTTPStatus
-from main import app
+class CourseController:
 
-
-class CourseController(Resource):
-
-    def __init__(self, course):
-        self.course = course
+    def __init__(self, courseService):
+        self.service = courseService
     
-    def get(self, course_id):
-        return self.course.get_course(course_id)
+    def handle_course_create_post(self, courseData):
+        return self.service.add_course(courseData)
     
-    @app.route('/sarasa', methods = ['POST'])
-    def post(self):
-        req = request.get_json()
-
-        if len(req['course_name']) <= 3:
-            return {'message': 'Name too short'}, HTTPStatus.BAD_REQUEST
-        
-        return self.course.add_course(req)
+    def handle_get_course(self, course_id):
+        return self.service.get_course(course_id)
