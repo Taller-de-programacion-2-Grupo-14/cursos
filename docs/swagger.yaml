@@ -1,0 +1,340 @@
+openapi: "3.0.0"
+servers:
+  - url: 'https://ubademy-14.herokuapp.com/'
+info:
+  description: Course API encargada de todas las operaciones relacionadas a cursos
+  version: 0.2.0
+  title: Course
+
+tags:
+  - name: Course
+    description: Operaciones sobre cursos
+
+paths:
+  '/courses/create':
+    'post':
+      tags:
+        - Course
+      description:
+        Crea un curso nuevo
+      requestBody:
+        description: body para la creacion del curso
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/courseCreate'
+      responses:
+        '200':
+          description: Curso creado correctamente
+        '400':
+          description: Bad Request
+  '/courses':
+    'get':
+      tags:
+        - Course
+      description: Obtengo una lista con todos los cursos
+      responses:
+        '200':
+          description: Todo okay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/coursesList'
+        '400':
+          description: Bad Request
+  '/courses/edit/:id':
+    'patch':
+      tags:
+        - Course
+      description: Modifica la informacion de un curso
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+          required: true
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido del usuario que desea editar el curso
+      requestBody:
+        description: Body para la edicion del curso
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/editCourse'
+      responses:
+        '200':
+          description: Curso editado correctamente
+        '400':
+          description: Invalid info
+        '401':
+          description: Token invalido
+        '403':
+          description: No token provisto
+        '405':
+          description: El usuario no es el creador del curso
+  '/courses/delete-course/:id':
+    'delete':
+      tags:
+        - Course
+      description: Elimina curso existente
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+          required: true
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido de usuario
+      requestBody:
+        description: Body para eliminar el curso
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/deleteCourse'
+      responses:
+        '200':
+          description: Curso eliminado correctamente
+        '400':
+          description: Invalid user action
+        '401':
+          description: Token invalido
+        '403':
+          description: No token provisto
+        '404':
+          description: Curso no encontrado
+  '/courses/view/:id':
+    'get':
+      tags:
+        - Course
+      description: Obtiene informacion mas detallada sobre el curso
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+          required: true
+        - in: query
+          name: idCurso
+          required: true
+          description: id del curso a visualizar
+      requestBody:
+        description: Body para obtener la informacion de un curso
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getCourseInfo'
+      responses:
+        '200':
+          description: Todo okay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/courseInfo'
+        '404':
+          description: Curso no existe
+  '/courses/add-collaborator/:id':
+    'post':
+      tags:
+        - Course
+      description: Agrega un colaborador al curso
+      parameters:
+        - in: path
+          name: id
+          required: true
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido del creador del curso
+      requestBody:
+        description: Body para agregar un colaborador
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/courseAddCollaborator'
+      responses:
+        '200':
+          description: Collaborator agregado correctamente
+        '401':
+          description: Token invalido
+        '403':
+          description: No token provisto
+        '404':
+          description: El collaborator no existe
+  '/courses/remove-collaborator/:id':
+    'post':
+      tags:
+        - Course
+      description: Quita a un colaborador del curso
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+          required: true
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido del creador del curso
+      requestBody:
+        description: Body para quitar un colaborador
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/courseRemoveCollaborator'
+      responses:
+        '200':
+          description: Collaborator removido correctamente
+        '401':
+          description: Token invalido
+        '403':
+          description: No token provisto
+        '404':
+          description: El collaborator no existe
+components:
+  schemas:
+    courseCreate:
+      type: object
+      required:
+        - course_name
+        - course_description
+        - hashtags
+        - course_type
+        - amount_exams
+        - subscription
+        - location
+      properties:
+        course_name:
+          type: string
+          example: 'Mas Python que nunca'
+        course_description:
+          type: string
+          example: 'Van a codear muchas cosas en python y van a ver que es alto lenguaje'
+        hashtags:
+          type: string
+          example: '#Python, #Sarasa'
+        course_type:
+          type: string
+          example: 'Programacion'
+        amount_exams:
+          type: integer
+          example: 3
+        subscription:
+          type: string
+          example: 'Premium'
+        location:
+          type: string
+          example: 'Obera'
+
+    coursesList:
+      type: object
+      properties:
+        course_name:
+          type: string
+          example: 'Mas Python que nunca'
+        creator_name:
+          type: string
+          example: 'Essaya'
+        subscription:
+          type: string
+          example: 'Premium'
+
+    editCourse:
+      type: object
+      properties:
+        course_name:
+          type: string
+          example: 'El regreso de Python'
+        course_description:
+          type: string
+          example: 'Van a codear muchas cosas en python y van a ver que es alto lenguaje'
+        hashtags:
+          type: string
+          example: '#Python, #Sarasa, #Fulano'
+        amount_exams:
+          type: integer
+          example: 3
+        location:
+          type: string
+          example: 'Obera'
+
+    deleteCourse:
+      type: object
+      properties:
+        course_name:
+          type: string
+          example: 'Mas Python que nunca'
+        course_id:
+          type: integer
+          example: 1
+
+    courseInfo:
+      properties:
+        course_name:
+          type: string
+          example: 'Mas Python que nunca'
+        course_description:
+          type: string
+          example: 'Van a codear muchas cosas en python y van a ver que es alto lenguaje'
+        hashtags:
+          type: string
+          example: '#Python, #Sarasa'
+        course_type:
+          type: string
+          example: 'Programacion'
+        amount_exams:
+          type: integer
+          example: 3
+        subscription:
+          type: string
+          example: 'Premium'
+        location:
+          type: string
+          example: 'Obera'
+
+    courseAddCollaborator:
+      type: object
+      required:
+        - id_creator
+        - id_course
+        - collaborator_mail
+      properties:
+        id_creator:
+          type: integer
+          example: 10
+        ic_course:
+          type: integer
+          example: 1
+        collaborator_mail:
+          type: string
+          example: 'pepe@gmail.com'
+
+    courseRemoveCollaborator:
+      type: object
+      required:
+        - id_creator
+        - id_course
+        - collaborator_mail
+      properties:
+        id_creator:
+          type: integer
+          example: 10
+        id_course:
+          type: integer
+          example: 1
+        collaborator_mail:
+          type: string
+          example: 'pepe@gmail.com'
+    getCourseInfo:
+      type: object
+      required:
+        -id_course
+      properties:
+        id_course:
+          type: integer
+          example: 1
