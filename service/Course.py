@@ -1,6 +1,3 @@
-from http import HTTPStatus
-
-
 class CourseService:
     def __init__(self, database):
         self.db = database
@@ -20,5 +17,8 @@ class CourseService:
     def editCourseInfo(self, courseId, newCourseInfo):
         self.db.editCourse(newCourseInfo, courseId)
 
+    def addCollaborator(self, courseId, collaboratorId):
+        self.db.addCollaborator(courseId, collaboratorId)
 
-# ErrorHandler ver que onda
+    def removeCollaborator(self, courseId, collaboratorId):
+        self.db.removeCollaborator(courseId, collaboratorId)
