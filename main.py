@@ -50,11 +50,17 @@ def removeCollaborator(collaborator: CollaboratorSchema):
 
 @app.exception_handler(RequestValidationError)
 def validationExceptionHandler(request: Request, exc: RequestValidationError):
+    errors = exc.errors()
+    fields = []
+    for err in errors:
+        value = {'field': err.get('loc', ['invalid field'])[-1], 'message': err.get('msg', '')}
+        fields.append(value)
+    finalStatus = status.HTTP_400_BAD_REQUEST
     return JSONResponse(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        content=jsonable_encoder({"detail": exc.errors(),
-                                  "body": exc.body,
-                                  "your_additional_errors": {"Will be": "Inside", "This": " Error message"}})
+        status_code=finalStatus,
+        content=jsonable_encoder({
+            "errors": fields,
+            "status": finalStatus})
     )
 
 
