@@ -28,24 +28,24 @@ def getCourses():
     return courseController.handleGetCourses()
 
 
-@app.patch('/courses/{course_id}')
-def editCourse(course_id: int, courseNewInfo: EditCourseInfoSchema):
-    return courseController.handleEdit(course_id, courseNewInfo.dict())
+@app.patch('/courses')
+def editCourse(courseNewInfo: EditCourseInfoSchema):
+    return courseController.handleEdit(courseNewInfo.dict())
 
 
-@app.delete('/courses/{course_id}')
-def deleteCourse(course_id: int, deleteCourseData: DeleteCourseSchema):
-    return courseController.handleDelete(course_id, deleteCourseData.dict()['user_id'])
+@app.delete('/courses')
+def deleteCourse(deleteCourseData: DeleteCourseSchema):
+    return courseController.handleDelete(deleteCourseData.dict())
 
 
-@app.post('courses/collaborators/{course_id}')
-def addCollaborator(course_id: int, collaborator: CollaboratorSchema):
-    courseController.handleAddCollaborator(course_id, collaborator.dict())
+@app.post('/courses/collaborators')
+def addCollaborator(collaborator: CollaboratorSchema):
+    return courseController.handleAddCollaborator(collaborator.dict())
 
 
-@app.delete('courses/collaborators/{course_id}')
-def removeCollaborator(course_id: int, collaborator: CollaboratorSchema):
-    courseController.handleRemoveCollaborator(course_id, collaborator.dict())
+@app.delete('/courses/collaborators')
+def removeCollaborator(collaborator: CollaboratorSchema):
+    return courseController.handleRemoveCollaborator(collaborator.dict())
 
 
 @app.exception_handler(RequestValidationError)

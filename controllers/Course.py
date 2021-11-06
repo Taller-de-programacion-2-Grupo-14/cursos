@@ -20,18 +20,18 @@ class CourseController:
         courses = self.service.getCourses()
         return {"info": courses, "status": status.HTTP_200_OK}
 
-    def handleDelete(self, courseId, userId):
-        self.service.deleteCourse(courseId, userId)
+    def handleDelete(self, deleteCourse):
+        self.service.deleteCourse(deleteCourse)
         return {"message": "Course deleted correctly", "status": status.HTTP_200_OK}
 
-    def handleEdit(self, courseId, courseNewInfo):
-        self.service.editCourse(courseId, courseNewInfo)
+    def handleEdit(self, courseNewInfo):
+        self.service.editCourse(courseNewInfo)
         return {"message": "Course edited correctly", "status": status.HTTP_200_OK}
 
-    def handleAddCollaborator(self, courseId, collaboratorId):
-        self.service.addCollaborator(courseId, collaboratorId)
+    def handleAddCollaborator(self, collaborator):
+        self.service.addCollaborator(collaborator)
         return {"message": "Collaborator added correctly", "status": status.HTTP_200_OK}
 
-    def handleRemoveCollaborator(self, courseId, collaboratorId):
-        self.service.removeCollaborator(courseId, collaboratorId)
+    def handleRemoveCollaborator(self, removeCollaborator):
+        self.service.removeCollaborator(removeCollaborator)
         return {"message": "Collaborator correctly removed", "status": status.HTTP_200_OK}

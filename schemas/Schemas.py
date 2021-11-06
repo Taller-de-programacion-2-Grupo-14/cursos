@@ -13,6 +13,7 @@ class CreateCourseSchema(BaseModel):
 
 
 class DeleteCourseSchema(BaseModel):
+    course_id: int
     user_id: int
 
 
@@ -27,4 +28,5 @@ class EditCourseInfoSchema(BaseModel):
 
 class CollaboratorSchema(BaseModel):
     user_id: int
-    user_to_remove: int
+    user_to_remove: int = None
+    course_id: int
