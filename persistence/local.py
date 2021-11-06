@@ -7,15 +7,12 @@ class DB:
         self.collaboratorsDB = {}
         self.id = 1
 
-    def addCourse(self, courseData):
-        if courseData['course_name'] in self._getCourseNames():
-            raise CourseAlreadyExists(courseData['course_name'])
-        self.db[self.id] = courseData
+    def addCourse(self, courseInfo):
+        self.db[self.id] = courseInfo
         self.id += 1
 
     def getCourse(self, courseId):
-        self._courseExists(courseId)
-        return self.db[courseId]
+        return self.db[courseId] if courseId in self.db else None
 
     def getCourses(self):
         courses = []
@@ -23,42 +20,21 @@ class DB:
             courses.append(course)
         return courses
 
-    def deleteCourse(self, courseId, userId):
-        self._courseExists(courseId)
-        if not self._isTheCourseCreator(courseId, userId):
-            raise InvalidUserAction
+    def deleteCourse(self, deleteCourse):
+        del self.db[deleteCourse['course_id']]
+        if deleteCourse['course_id'] in self.collaboratorsDB:
+            del self.collaboratorsDB[deleteCourse['course_id']]
 
-        del self.db[courseId]
+    def editCourse(self, courseNewInfo):
+        self.db[courseNewInfo['course_id']] = courseNewInfo
+        # No es tan asi, solo cierta info podemos modificar otra es fija
 
-    def editCourse(self, courseId, courseNewInfo):
-        self._courseExists(courseId)
-        if not self._isTheCourseCreator(courseNewInfo['user_id'], courseId):
-            raise InvalidUserAction
+    def addCollaborator(self, collaborator):
+        self.collaboratorsDB[collaborator['course_id']] = self.collaboratorsDB.get(collaborator['course_id'], []) + [
+            collaborator['user_id']]
 
-        self.db[courseId] = courseNewInfo  # No es tan asi, solo cierta info podemos modificar otra es fija
-
-    def addCollaborator(self, courseId, collaboratorId):
-        self._courseExists(courseId)
-        if collaboratorId in self.collaboratorsDB[courseId]:
-            raise IsAlreadyACollaborator(self._getCourseName(courseId))
-
-        self.collaboratorsDB[courseId].append(collaboratorId)
-
-    def removeCollaborator(self, courseId, collaboratorId):
-        # ToDo: supongo que hay dos formas de dar de baja un colaborador.
-        # 1) El creador lo saca 2) el colaborador se da de baja, verificar que se cumpla una de las dos
-        self._courseExists(courseId)
-        if collaboratorId not in self.collaboratorsDB[courseId]:
-            raise IsNotACollaborator(self._getCourseName(courseId))
-
-        self.collaboratorsDB[courseId].remove(collaboratorId)
-
-    def _getCourseNames(self):
-        names = []
-        for courseInfo in self.db.values():
-            names.append(courseInfo['course_name'])
-
-        return names
+    def removeCollaborator(self, collaborator):
+        self.collaboratorsDB[collaborator['course_id']].remove(collaborator['user_to_remove'])
 
     def _courseExists(self, courseId):
         if courseId not in self.db:
@@ -67,5 +43,18 @@ class DB:
     def _isTheCourseCreator(self, userId, courseId):
         return self.db[courseId]['user_id'] == userId
 
-    def _getCourseName(self, courseId):
+    def getCourseName(self, courseId):
         return self.db[courseId]['course_name']
+
+    def getCourseCreator(self, courseId):
+        return self.db[courseId]['user_id']
+
+    def getCoursesCreatedBy(self, user_id):
+        courses = []
+        for course in self.db.values():
+            if course['user_id'] == user_id:
+                courses.append(course['course_name'])
+        return courses
+
+    def getCourseCollaborators(self, courseId):
+        return self.collaboratorsDB[courseId] if courseId in self.collaboratorsDB else []
