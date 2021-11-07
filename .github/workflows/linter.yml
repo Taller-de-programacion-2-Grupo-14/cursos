@@ -1,4 +1,4 @@
-name: linter
+name: flake8 Lint
 
 on: [push]
   # Trigger the workflow on push or pull request,
@@ -22,8 +22,8 @@ jobs:
       - name: Install Python dependencies
         run: pip install black flake8
 
-      - name: Run linters
+      - name: flake8 Lint
         uses: py-actions/flake8@v1
         with:
-          ignore: "F403","F405","N802","N803","N806","N816"
+          ignore: ["F403","F405","N802","N803","N806","N816"]
           max-line-length: "100"
