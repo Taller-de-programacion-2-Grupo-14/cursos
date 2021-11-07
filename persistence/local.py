@@ -14,9 +14,10 @@ class DB:
     def getCourse(self, courseId):
         return self.db[courseId] if courseId in self.db else None
 
-    def getCourses(self):
+    def getCourses(self, courseFilters):
         courses = []
         for course in self.db.values():
+            print(courseFilters)
             courses.append(course)
         return courses
 
@@ -30,8 +31,8 @@ class DB:
         # No es tan asi, solo cierta info podemos modificar otra es fija
 
     def addCollaborator(self, collaborator):
-        self.collaboratorsDB[collaborator['course_id']] = self.collaboratorsDB.get(collaborator['course_id'], []) + [
-            collaborator['user_id']]
+        self.collaboratorsDB[collaborator['course_id']] = \
+            self.collaboratorsDB.get(collaborator['course_id'], []) + [collaborator['user_id']]
 
     def removeCollaborator(self, collaborator):
         self.collaboratorsDB[collaborator['course_id']].remove(collaborator['user_to_remove'])
