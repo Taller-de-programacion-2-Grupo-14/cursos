@@ -1,9 +1,14 @@
 name: flake8 Lint
 
-on: [push]
+on:
   # Trigger the workflow on push or pull request,
   # but only for the main branch
-
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   run-linters:
@@ -21,6 +26,11 @@ jobs:
 
       - name: Install Python dependencies
         run: pip install black flake8
+
+      - name: Run linters
+        uses: wearerequired/lint-action@v1
+        with:
+          black: true
 
       - name: flake8 Lint
         uses: py-actions/flake8@v1.2.0

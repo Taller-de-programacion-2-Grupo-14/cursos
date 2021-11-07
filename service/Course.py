@@ -40,7 +40,7 @@ class CourseService:
         if removeCollaborator['user_to_remove'] not in \
                 self.db.getCourseCollaborators(removeCollaborator['course_id']):
             raise IsNotACollaborator(self.db.getCourseName(removeCollaborator['course_id']))
-        if removeCollaborator['user_id'] == removeCollaborator['user_to_remove']\
+        if removeCollaborator['user_id'] == removeCollaborator['user_to_remove'] \
                 or self._isTheCourseCreator(removeCollaborator, raiseException=False):
             self.db.removeCollaborator(removeCollaborator)
         else:
