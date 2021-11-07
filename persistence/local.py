@@ -31,8 +31,8 @@ class DB:
         # No es tan asi, solo cierta info podemos modificar otra es fija
 
     def addCollaborator(self, collaborator):
-        self.collaboratorsDB[collaborator['course_id']] = self.collaboratorsDB.get(collaborator['course_id'], []) + [
-            collaborator['user_id']]
+        self.collaboratorsDB[collaborator['course_id']] = \
+            self.collaboratorsDB.get(collaborator['course_id'], []) + [collaborator['user_id']]
 
     def removeCollaborator(self, collaborator):
         self.collaboratorsDB[collaborator['course_id']].remove(collaborator['user_to_remove'])
