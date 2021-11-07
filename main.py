@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, status, Depends
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -7,6 +7,7 @@ from service.Course import CourseService
 from controllers.Course import CourseController
 from schemas.Schemas import *
 from exceptions.CourseException import CourseException
+from queryParams.QueryParams import *
 
 app = FastAPI()
 courseService = CourseService(DB())
@@ -24,8 +25,8 @@ def getCourse(course_id: int):
 
 
 @app.get('/courses')
-def getCourses():
-    return courseController.handleGetCourses()
+def getCourses(courseFilters: CourseQueryParams = Depends(CourseQueryParams)):
+    return courseController.handleGetCourses(courseFilters)
 
 
 @app.patch('/courses')
@@ -44,7 +45,7 @@ def addCollaborator(collaborator: CollaboratorSchema):
 
 
 @app.delete('/courses/collaborators')
-def removeCollaborator(collaborator: CollaboratorSchema):
+def removeCollaborator(collaborator: RemoveCollaboratorSchema):
     return courseController.handleRemoveCollaborator(collaborator.dict())
 
 

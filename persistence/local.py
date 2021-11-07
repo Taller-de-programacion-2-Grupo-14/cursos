@@ -14,9 +14,10 @@ class DB:
     def getCourse(self, courseId):
         return self.db[courseId] if courseId in self.db else None
 
-    def getCourses(self):
+    def getCourses(self, courseFilters):
         courses = []
         for course in self.db.values():
+            print(courseFilters)
             courses.append(course)
         return courses
 

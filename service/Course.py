@@ -16,8 +16,8 @@ class CourseService:
             raise CourseDoesNotExist
         return course
 
-    def getCourses(self):
-        return self.db.getCourses()
+    def getCourses(self, courseFilters):
+        return self.db.getCourses(courseFilters)
 
     def deleteCourse(self, deleteCourse):
         self._courseExists(deleteCourse)
