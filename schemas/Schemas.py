@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 
 
 class CreateCourseSchema(BaseModel):
@@ -28,5 +28,10 @@ class EditCourseInfoSchema(BaseModel):
 
 class CollaboratorSchema(BaseModel):
     user_id: int
-    user_to_remove: int = None
+    course_id: int
+
+
+class RemoveCollaboratorSchema(BaseModel):
+    user_id: int
+    user_to_remove: int
     course_id: int
