@@ -78,7 +78,8 @@ def handleUnknownException(request: Request, exc: Exception):
     return JSONResponse(
         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         content=jsonable_encoder(
-            {"message": 'Neither God knows what happened... just kidding, the error was:' + type(exc).__name__,
+            {"message": 'Neither God knows what happened...'
+                        'just kidding, the error was:' + type(exc).__name__,
              "status": status.HTTP_503_SERVICE_UNAVAILABLE
              })
     )

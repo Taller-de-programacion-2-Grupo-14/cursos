@@ -1,14 +1,9 @@
 name: linter
 
-on:
+on: [push]
   # Trigger the workflow on push or pull request,
   # but only for the main branch
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+
 
 jobs:
   run-linters:
@@ -28,7 +23,7 @@ jobs:
         run: pip install black flake8
 
       - name: Run linters
-        uses: wearerequired/lint-action@v1
+        uses: py-actions/flake8@v1
         with:
-          black: true
-          flake8: true
+          ignore: "F403","F405","N802","N803","N806","N816"
+          max-line-length: "100"
