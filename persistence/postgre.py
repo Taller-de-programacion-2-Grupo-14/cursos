@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from ..models import Courses, Colaborators, Enrolled
+from ..models import Courses, Colaborators
 
 
 class DB:
