@@ -10,10 +10,13 @@ from schemas.Schemas import *
 from exceptions.CourseException import CourseException
 from queryParams.QueryParams import *
 from sqlalchemy import create_engine
+
+
 engine = create_engine(os.environ.get("DATABASE_URL"), echo=True, future=True)
 app = FastAPI()
 courseService = CourseService(DB())
 courseController = CourseController(courseService)
+
 
 @app.post('/courses/create')
 def createCourse(createCourseData: CreateCourseSchema):
