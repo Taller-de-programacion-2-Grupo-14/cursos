@@ -3,9 +3,11 @@ create table courses(
     id serial not null,
     exams int not null,
     creator_id int not null,
-    category varchar(255) not null,
+    type varchar(255) not null,
     subscription varchar(255) not null,
     description varchar(1500) not null,
+    hashtags varchar(1000) default (''),
+    location varchar(255) not null,
     primary key(id),
     unique (name, creator_id)
 );

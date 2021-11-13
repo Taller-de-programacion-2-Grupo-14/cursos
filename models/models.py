@@ -12,9 +12,11 @@ class Courses(Base):
     id = Column(Integer, primary_key=True)
     exams = Column(Integer)
     creator_id = Column(Integer)
-    category = Column(String(255))
+    type = Column(String(255))
     subscription = Column(String(255))
     description = Column(String(255))
+    hashtags = Column(String(1000))
+    location = Column(String(255))
 
 
 class Colaborators(Base):
