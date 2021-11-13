@@ -48,6 +48,19 @@ def addCollaborator(collaborator: CollaboratorSchema):
 def removeCollaborator(collaborator: RemoveCollaboratorSchema):
     return courseController.handleRemoveCollaborator(collaborator.dict())
 
+@app.get("/doc-yml")
+def getSwagger():
+    with open("docs/swagger.yaml", "r") as swagger:
+        return swagger.readlines()
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    return response
+
 
 @app.exception_handler(RequestValidationError)
 def validationExceptionHandler(request: Request, exc: RequestValidationError):
