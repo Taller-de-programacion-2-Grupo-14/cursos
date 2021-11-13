@@ -28,7 +28,9 @@ class InvalidUserAction(CourseException):
 class IsAlreadyACollaborator(CourseException):
     def __init__(self, courseName):
         self.status_code = status.HTTP_208_ALREADY_REPORTED
-        self.message = f"The user is already a collaborator of the course '{courseName}'"
+        self.message = (
+            f"The user is already a collaborator of the course '{courseName}'"
+        )
 
 
 class IsNotACollaborator(CourseException):

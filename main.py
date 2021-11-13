@@ -18,37 +18,37 @@ courseService = CourseService(DB())
 courseController = CourseController(courseService)
 
 
-@app.post('/courses/create')
+@app.post("/courses/create")
 def createCourse(createCourseData: CreateCourseSchema):
     return courseController.handleCreate(createCourseData.dict())
 
 
-@app.get('/courses/{course_id}')
+@app.get("/courses/{course_id}")
 def getCourse(course_id: int):
     return courseController.handleGet(course_id)
 
 
-@app.get('/courses')
+@app.get("/courses")
 def getCourses(courseFilters: CourseQueryParams = Depends(CourseQueryParams)):
     return courseController.handleGetCourses(courseFilters)
 
 
-@app.patch('/courses')
+@app.patch("/courses")
 def editCourse(courseNewInfo: EditCourseInfoSchema):
     return courseController.handleEdit(courseNewInfo.dict())
 
 
-@app.delete('/courses')
+@app.delete("/courses")
 def deleteCourse(deleteCourseData: DeleteCourseSchema):
     return courseController.handleDelete(deleteCourseData.dict())
 
 
-@app.post('/courses/collaborators')
+@app.post("/courses/collaborators")
 def addCollaborator(collaborator: CollaboratorSchema):
     return courseController.handleAddCollaborator(collaborator.dict())
 
 
-@app.delete('/courses/collaborators')
+@app.delete("/courses/collaborators")
 def removeCollaborator(collaborator: RemoveCollaboratorSchema):
     return courseController.handleRemoveCollaborator(collaborator.dict())
 
@@ -58,14 +58,15 @@ def validationExceptionHandler(request: Request, exc: RequestValidationError):
     errors = exc.errors()
     fields = []
     for err in errors:
-        value = {'field': err.get('loc', ['invalid field'])[-1], 'message': err.get('msg', '')}
+        value = {
+            "field": err.get("loc", ["invalid field"])[-1],
+            "message": err.get("msg", ""),
+        }
         fields.append(value)
     finalStatus = status.HTTP_400_BAD_REQUEST
     return JSONResponse(
         status_code=finalStatus,
-        content=jsonable_encoder({
-            "errors": fields,
-            "status": finalStatus})
+        content=jsonable_encoder({"errors": fields, "status": finalStatus}),
     )
 
 
@@ -73,7 +74,7 @@ def validationExceptionHandler(request: Request, exc: RequestValidationError):
 def handle_course_exception(request: Request, exc: CourseException):
     return JSONResponse(
         status_code=exc.status_code,
-        content=jsonable_encoder({"message": exc.message, "status": exc.status_code})
+        content=jsonable_encoder({"message": exc.message, "status": exc.status_code}),
     )
 
 
@@ -82,8 +83,10 @@ def handleUnknownException(request: Request, exc: Exception):
     return JSONResponse(
         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         content=jsonable_encoder(
-            {"message": 'Neither God knows what happened...'
-                        'just kidding, the error was:' + type(exc).__name__,
-             "status": status.HTTP_503_SERVICE_UNAVAILABLE
-             })
+            {
+                "message": "Neither God knows what happened..."
+                "just kidding, the error was:" + type(exc).__name__,
+                "status": status.HTTP_503_SERVICE_UNAVAILABLE,
+            }
+        ),
     )

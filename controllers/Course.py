@@ -2,7 +2,6 @@ from fastapi import status
 
 
 class CourseController:
-
     def __init__(self, courseService):
         self.service = courseService
 
@@ -33,4 +32,7 @@ class CourseController:
 
     def handleRemoveCollaborator(self, removeCollaborator):
         self.service.removeCollaborator(removeCollaborator)
-        return {"message": "Collaborator correctly removed", "status": status.HTTP_200_OK}
+        return {
+            "message": "Collaborator correctly removed",
+            "status": status.HTTP_200_OK,
+        }
