@@ -46,7 +46,8 @@ class DB:
 
     def getCourses(self, courseFilters):
         # TODO: ver donde poner el canedit
-        # devuelve nombre, course_id, creator_name,subscription, location, hashtags, description, exams, type
+        # devuelve nombre, course_id, creator_name,subscription, location, 
+        # hashtags, description, exams, type
         return
 
     def deleteCourse(self, deleteCourse):
