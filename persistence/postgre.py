@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from ..models import Courses, Colaborators
+from models.courses import Courses
+from models.colaborators import Colaborators
 
 
 class DB:
