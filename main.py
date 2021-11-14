@@ -30,7 +30,7 @@ def getCourse(course_id: int):
 
 @app.get("/courses")
 def getCourses(courseFilters: CourseQueryParams = Depends(CourseQueryParams)):
-    return courseController.handleGetCourses(courseFilters)
+    return courseController.handleGetCourses(courseFilters.dict())
 
 
 @app.patch("/courses")

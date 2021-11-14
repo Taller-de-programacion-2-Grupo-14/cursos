@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from ..models import Courses, Colaborators
 
 
@@ -46,9 +47,24 @@ class DB:
 
     def getCourses(self, courseFilters):
         # TODO: ver donde poner el canedit
-        # devuelve nombre, course_id, creator_name,subscription, location,
-        # hashtags, description, exams, type
-        return
+        offset = courseFilters["offset"]
+        limit = courseFilters["limit"]
+        where_clause = ""
+        endings = f"offset {offset} limit {limit}"
+        if len(courseFilters) > 2:
+            where_clause = " WHERE"
+            for k, v in courseFilters:
+                if k == "offset" or k == "limit":
+                    pass
+                if k == "exams":
+                    filter = f"{k} = {v}"
+                else:
+                    filter = f"{k} LIKE {v}"
+                if where_clause != " WHERE":
+                    where_clause += "AND"
+                where_clause += filter
+        query = f"SELECT * FROM courses {where_clause} {endings}"
+        self.session.execute(text(query))
 
     def deleteCourse(self, deleteCourse):
         course_id = deleteCourse["course_id"]
