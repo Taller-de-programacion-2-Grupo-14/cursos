@@ -8,6 +8,8 @@ from controllers.Course import CourseController
 from schemas.Schemas import *
 from exceptions.CourseException import CourseException
 from queryParams.QueryParams import *
+import yaml
+
 
 app = FastAPI()
 courseService = CourseService(DB())
@@ -48,10 +50,13 @@ def addCollaborator(collaborator: CollaboratorSchema):
 def removeCollaborator(collaborator: RemoveCollaboratorSchema):
     return courseController.handleRemoveCollaborator(collaborator.dict())
 
+
 @app.get("/doc-yml")
 def getSwagger():
-    with open("docs/swagger.yaml", "r") as swagger:
-        return swagger.readlines()
+    with open("docs/swagger.yaml") as f:
+        swagger = yaml.safe_load(f)
+        return swagger
+
 
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
