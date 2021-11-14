@@ -1,6 +1,6 @@
 openapi: "3.0.0"
 servers:
-  - url: 'https://ubademy-14.herokuapp.com/'
+  - url: 'https://ubademy-14-prod.herokuapp.com/'
 info:
   description: Course API encargada de todas las operaciones relacionadas a cursos
   version: 0.2.0
