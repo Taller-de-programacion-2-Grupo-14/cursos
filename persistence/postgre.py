@@ -60,7 +60,7 @@ class DB:
                 if k == "exams":
                     filter = f"{k} = {v}"
                 else:
-                    filter = f"{k} LIKE {v}"
+                    filter = f"{k} LIKE '%{v}%'"
                 if where_clause != " WHERE":
                     where_clause += "AND"
                 where_clause += filter
