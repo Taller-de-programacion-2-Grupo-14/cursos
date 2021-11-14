@@ -11,7 +11,7 @@ class DB:
     def addCourse(self, courseInfo):
         name = courseInfo["name"]
         exams = courseInfo["exams"]
-        creator_id = courseInfo["creator_id"]
+        creator_id = courseInfo["user_id"]
         type = courseInfo["type"]
         subscription = courseInfo["subscription"]
         location = courseInfo["subscription"]

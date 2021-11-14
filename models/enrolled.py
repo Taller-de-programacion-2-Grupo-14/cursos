@@ -2,7 +2,7 @@ from sqlalchemy import Column
 from sqlalchemy import ForeignKey
 from sqlalchemy import PrimaryKeyConstraint
 from sqlalchemy import Integer
-from .database import Base
+from models.database import Base
 
 
 class Enrolled(Base):

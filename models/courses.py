@@ -1,7 +1,7 @@
 from sqlalchemy import Column
 from sqlalchemy import Integer
 from sqlalchemy import String
-from . import Base
+from models.database import Base
 
 
 class Courses(Base):

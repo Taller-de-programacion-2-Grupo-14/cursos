@@ -6,10 +6,9 @@ class CourseService:
         self.db = database
 
     def addCourse(self, courseInfo):
-        if courseInfo["course_name"] in self.db.getCoursesCreatedBy(
-            courseInfo["user_id"]
-        ):
-            raise CourseAlreadyExists(courseInfo["course_name"])
+        course = self.db.getCoursesCreatedBy(courseInfo["user_id"])
+        if course and courseInfo["name"] in course:
+            raise CourseAlreadyExists(courseInfo["name"])
         return self.db.addCourse(courseInfo)
 
     def getCourse(self, courseId):
@@ -34,7 +33,7 @@ class CourseService:
     def addCollaborator(self, collaborator):
         self._courseExists(collaborator)
         if collaborator["user_id"] in self.db.getCourseCollaborators(
-            collaborator["course_id"]
+                collaborator["course_id"]
         ):
             raise IsAlreadyACollaborator(
                 self.db.getCourseName(collaborator["course_id"])
@@ -44,7 +43,7 @@ class CourseService:
     def removeCollaborator(self, removeCollaborator):
         self._courseExists(removeCollaborator)
         if removeCollaborator["user_to_remove"] not in self.db.getCourseCollaborators(
-            removeCollaborator["course_id"]
+                removeCollaborator["course_id"]
         ):
             raise IsNotACollaborator(
                 self.db.getCourseName(removeCollaborator["course_id"])
