@@ -84,7 +84,7 @@ def handleUnknownException(request: Request, exc: Exception):
         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         content=jsonable_encoder(
             {
-                "message": "Unknown error:" + type(exc).__name__,
+                "message": f"Unknown error: {type(exc).__name__} with message: {exc.args[0]}",
                 "status": status.HTTP_503_SERVICE_UNAVAILABLE,
             }
         ),
