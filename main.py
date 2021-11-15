@@ -3,6 +3,7 @@ from fastapi import FastAPI, Request, status, Depends
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
+from external.users import Users
 from persistence.postgre import DB
 from service.Course import CourseService
 from controllers.Course import CourseController
@@ -14,7 +15,8 @@ from sqlalchemy import create_engine
 
 engine = create_engine(os.environ.get("DATABASE_URL"), echo=True, future=True)
 app = FastAPI()
-courseService = CourseService(DB(engine))
+userSearcher = Users()
+courseService = CourseService(DB(engine), userSearcher)
 courseController = CourseController(courseService)
 
 

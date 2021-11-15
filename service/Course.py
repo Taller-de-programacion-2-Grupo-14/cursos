@@ -1,9 +1,12 @@
+from requests import HTTPError
+
 from exceptions.CourseException import *
 
 
 class CourseService:
-    def __init__(self, database):
+    def __init__(self, database, usersClient):
         self.db = database
+        self.userClient = usersClient
 
     def addCourse(self, courseInfo):
         course = self.db.getCoursesCreatedBy(courseInfo["user_id"])
@@ -66,3 +69,10 @@ class CourseService:
     def _courseExists(self, data):
         if self.db.getCourse(data["course_id"]) is None:
             raise CourseDoesNotExist
+
+    def getUser(self, userId):
+        try:
+            return self.userClient.getUser(userId)
+        except HTTPError as e:
+            print(f"exception while getting user f{e}")
+            raise UserNotFound()

@@ -37,3 +37,8 @@ class IsNotACollaborator(CourseException):
     def __init__(self, courseName):
         self.status_code = status.HTTP_404_NOT_FOUND
         self.message = f"The user is not a collaborator of the course '{courseName}'"
+
+
+class UserNotFound(CourseException):
+    def __init__(self):
+        super().__init__(status.HTTP_400_NOT_FOUND, "user not found")
