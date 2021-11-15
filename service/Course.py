@@ -1,5 +1,6 @@
 from requests import HTTPError
 from exceptions.CourseException import *
+
 DEFAULT_OFFSET = 0
 DEFAULT_LIMIT = 10
 
@@ -11,7 +12,10 @@ class CourseService:
 
     def addCourse(self, courseInfo):
         courseNames = self._getCourseNames(
-            self.db.getCourses(self._createDefaultFilter({"creator_id": courseInfo["user_id"]})))
+            self.db.getCourses(
+                self._createDefaultFilter({"creator_id": courseInfo["user_id"]})
+            )
+        )
         if courseInfo["name"] in courseNames:
             raise CourseAlreadyExists(courseInfo["name"])
         self.db.addCourse(courseInfo)
@@ -108,7 +112,9 @@ class CourseService:
             raise InvalidUserAction
 
     def _isTheCourseCreator(self, courseData):
-        return courseData["user_id"] == self.db.getCourse(courseData["id"])["creator_id"]
+        return (
+            courseData["user_id"] == self.db.getCourse(courseData["id"])["creator_id"]
+        )
 
     def _createDefaultFilter(self, filters):
         filter = {}
