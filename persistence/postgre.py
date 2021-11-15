@@ -14,7 +14,7 @@ class DB:
         creator_id = courseInfo["user_id"]
         type = courseInfo["type"]
         subscription = courseInfo["subscription"]
-        location = courseInfo["subscription"]
+        location = courseInfo["location"]
         description = courseInfo["description"]
         hashtags = courseInfo.get("hashtags", "")
         c = Courses(

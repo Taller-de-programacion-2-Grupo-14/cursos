@@ -12,7 +12,7 @@ from queryParams.QueryParams import *
 from sqlalchemy import create_engine
 
 
-engine = create_engine(os.environ.get("DATABASE_URL"), echo=True, future=True)
+engine = create_engine("postgresql://postgres:postgres@localhost:5432/test_db", echo=True, future=True)
 app = FastAPI()
 courseService = CourseService(DB(engine))
 courseController = CourseController(courseService)
@@ -84,8 +84,7 @@ def handleUnknownException(request: Request, exc: Exception):
         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         content=jsonable_encoder(
             {
-                "message": "Neither God knows what happened..."
-                "just kidding, the error was:" + type(exc).__name__,
+                "message": "Unknown error:" + type(exc).__name__,
                 "status": status.HTTP_503_SERVICE_UNAVAILABLE,
             }
         ),
