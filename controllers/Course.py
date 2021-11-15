@@ -43,8 +43,8 @@ class CourseController:
         self.service.addSubscriber(courseId, subscriberId)
         return {"message": "Successful subscription", "status": status.HTTP_200_OK}
 
-    def handleRemoveSubscriber(self, courseId, removeSubscriber):
-        self.service.removeSubscriber(courseId, removeSubscriber)
+    def handleRemoveSubscriber(self, courseId, subscriberId):
+        self.service.removeSubscriber(courseId, subscriberId)
         return {"message": "Successful unsubscription", "status": status.HTTP_200_OK}
 
     def handleGetMyCourses(self, userId):

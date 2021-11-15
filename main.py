@@ -38,8 +38,8 @@ def getCourse(courseId: int):
 
 @app.get("/courses")
 def getCourses(courseFilters: CourseQueryParams = Depends(CourseQueryParams)):
-    return courseController.handleGetCourses(courseFilters.dict())
-# ToDo: pasar el constructor de los query params a un diccionario
+    return courseController.handleGetCourses(courseFilters.getFilters())
+
 
 @app.patch("/courses")
 def editCourse(courseNewInfo: EditCourseInfoSchema):
@@ -67,8 +67,8 @@ def addSubscriber(courseId: int, subscriber: UserSchema):
 
 
 @app.delete("courses/subscription/{courseId}")
-def removeSubscriber(courseId: int, subscriber: RemoveSubscriberSchema):
-    return courseController.handleRemoveSubscriber(courseId, subscriber.dict())
+def removeSubscriber(courseId: int, subscriber: UserSchema):
+    return courseController.handleRemoveSubscriber(courseId, user.user_id)
 
 
 @app.get("courses/my_courses")

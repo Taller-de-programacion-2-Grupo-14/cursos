@@ -35,3 +35,7 @@ class RemoveCollaboratorSchema(BaseModel):
     user_id: int
     user_to_remove: int
     id: int
+
+
+class UserSchema(BaseModel):
+    user_id: int
