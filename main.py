@@ -29,7 +29,6 @@ def createCourse(createCourseData: CreateCourseSchema):
     return courseController.handleCreate(createCourseData.dict())
 
 
-# ToDo: agregar aca para que pueda ver a los usuarios el creador
 @app.get("/courses/{courseId}")
 def getCourse(courseId: int):
     return courseController.handleGet(courseId)
@@ -67,7 +66,7 @@ def addSubscriber(courseId: int, subscriber: UserSchema):
 
 @app.delete("courses/subscription/{courseId}")
 def removeSubscriber(courseId: int, subscriber: UserSchema):
-    return courseController.handleRemoveSubscriber(courseId, user.user_id)
+    return courseController.handleRemoveSubscriber(courseId, subscriber.user_id)
 
 
 @app.get("courses/my_courses")
@@ -76,7 +75,7 @@ def getMyCourses(user: UserSchema):
 
 
 @app.get("courses/my_subscriptions")
-def getMyCourses(user: UserSchema):
+def getMySubscriptions(user: UserSchema):
     return courseController.handleGetMySubscriptions(user.user_id)
 
 
