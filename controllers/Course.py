@@ -48,11 +48,9 @@ class CourseController:
         return {"message": "Successful unsubscription", "status": status.HTTP_200_OK}
 
     def handleGetMyCourses(self, userId):
+        # Fixme: dudo que ande esto
         myCourses = self.service.getCourses({'creator_id': userId})
         return {"message": myCourses, "status": self._getCorrectStatus(myCourses)}
-        # Aca podes reutilizar la funcion, pero antes no
-        # porque la UI no sabe el id del usuario que esta haciendo la consulta, tiene el token
-        # A partir del token se el id
 
     def handleGetMySubscriptions(self, userId):
         mySubscriptions = self.service.getMySubscriptions(userId)

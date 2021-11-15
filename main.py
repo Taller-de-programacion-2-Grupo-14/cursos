@@ -14,7 +14,6 @@ from sqlalchemy import create_engine
 import yaml
 
 
-
 # engine = create_engine(
 #     "postgresql://postgres:postgres@localhost:5432/test_db", echo=True, future=True
 # )

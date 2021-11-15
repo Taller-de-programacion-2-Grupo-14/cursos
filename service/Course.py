@@ -14,14 +14,19 @@ class CourseService:
             self.db.getCourses(self._createDefaultFilter({"creator_id": courseInfo["user_id"]})))
         if courseInfo["name"] in courseNames:
             raise CourseAlreadyExists(courseInfo["name"])
-        return self.db.addCourse(courseInfo)
+        self.db.addCourse(courseInfo)
 
     def getCourse(self, courseId):
+        #deberia recibir un schema, porque si el curso esta cancelado yo puedo verlo
         self._raiseExceptionIfCourseDoesNotExists(courseId)
+        #ToDo: conseguir el nombre del creador
+        # ToDo: chequear que si esta cancelado y yo no soy el creador tiene que devolver None
         return self.db.getCourse(courseId)
 
     def getCourses(self, courseFilters):
-        return self.db.getCourses(courseFilters)
+        # ToDo: hay que transformar el id del creador y pasarlo como nombre
+        courses = self.db.getCourses(courseFilters)
+        return courses
 
     def deleteCourse(self, deleteCourse):
         self._raiseExceptionIfCourseDoesNotExists(deleteCourse["id"])
@@ -67,6 +72,7 @@ class CourseService:
         self.db.removeSubscriber(courseId, subscriberId)
 
     def getMySubscriptions(self, userId):
+        # ToDo: pasar id del creador a nombre
         return self.db.getSubscriptions(userId)
 
     # Auxiliar Functions

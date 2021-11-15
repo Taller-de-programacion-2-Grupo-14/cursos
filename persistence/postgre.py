@@ -9,6 +9,7 @@ class DB:
         self.session = Session(engine)
 
     def addCourse(self, courseInfo):
+        # ToDo: agregar un campo mas que sea status(cancelled)
         name = courseInfo["name"]
         exams = courseInfo["exams"]
         creator_id = courseInfo["user_id"]
@@ -17,6 +18,7 @@ class DB:
         location = courseInfo["location"]
         description = courseInfo["description"]
         hashtags = courseInfo.get("hashtags", "")
+        cancelled = 0
         c = Courses(
             name=name,
             exams=exams,
@@ -26,6 +28,7 @@ class DB:
             description=description,
             hashtags=hashtags,
             location=location,
+            cancelled=cancelled
         )
         self.session.add(c)
         self.session.commit()
@@ -43,6 +46,7 @@ class DB:
             "description": course.description,
             "hashtags": course.hashtags,
             "location": course.location,
+            "cancelled": course.cancelled
         }
         return dic_course
 
@@ -65,16 +69,12 @@ class DB:
                     where_clause += "AND"
                 where_clause += filter
         query = f"SELECT * FROM courses {where_clause} {endings}"
-        self.session.execute(text(query))
+        return self.session.execute(text(query))  # Preprocesarlos antes
 
     def deleteCourse(self, deleteCourse):
         course_id = deleteCourse["course_id"]
-        user_id = deleteCourse["user_id"]
-        course = self.session.query(Colaborators).get((user_id, course_id))
-        if not course:
-            return None
-        self.session.delete(course)
-        self.session.commit()
+        query = f"UPDATE courses SET cancelled = 1 WHERE id = {course_id}"
+        self.session.execute(text(query))
 
     def editCourse(self, courseNewInfo):
         course_id = courseNewInfo["course_id"]
@@ -106,6 +106,7 @@ class DB:
         self.session.commit()
 
     def getCoursesCreatedBy(self, user_id):
+        #Creo que ya no hace falta
         courses_creator = self.session.query(Courses).filter(
             Courses.creator_id == user_id
         )
@@ -126,3 +127,5 @@ class DB:
         for c in colabs_course:
             colaborators.append(c.id_colaborator)
         return colaborators
+
+    # ToDo: cuando agregues un estudiante acordate que necesita un status
