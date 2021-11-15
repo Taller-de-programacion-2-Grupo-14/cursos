@@ -15,3 +15,4 @@ class Courses(Base):
     description = Column(String(255))
     hashtags = Column(String(1000))
     location = Column(String(255))
+    cancelled = Column(Integer)

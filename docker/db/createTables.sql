@@ -8,6 +8,7 @@ create table courses(
     description varchar(1500) not null,
     hashtags varchar(1000) default (''),
     location varchar(255) not null,
+    cancelled int not null,
     primary key(id),
     unique (name, creator_id)
 );

@@ -1,5 +1,6 @@
 from requests import HTTPError
 from exceptions.CourseException import *
+
 DEFAULT_OFFSET = 0
 DEFAULT_LIMIT = 10
 
@@ -11,15 +12,18 @@ class CourseService:
 
     def addCourse(self, courseInfo):
         courseNames = self._getCourseNames(
-            self.db.getCourses(self._createDefaultFilter({"creator_id": courseInfo["user_id"]})))
+            self.db.getCourses(
+                self._createDefaultFilter({"creator_id": courseInfo["user_id"]})
+            )
+        )
         if courseInfo["name"] in courseNames:
             raise CourseAlreadyExists(courseInfo["name"])
         self.db.addCourse(courseInfo)
 
     def getCourse(self, courseId):
-        #deberia recibir un schema, porque si el curso esta cancelado yo puedo verlo
+        # deberia recibir un schema, porque si el curso esta cancelado yo puedo verlo
         self._raiseExceptionIfCourseDoesNotExists(courseId)
-        #ToDo: conseguir el nombre del creador
+        # ToDo: conseguir el nombre del creador
         # ToDo: chequear que si esta cancelado y yo no soy el creador tiene que devolver None
         return self.db.getCourse(courseId)
 
@@ -33,7 +37,7 @@ class CourseService:
         self._raiseExceptionIfIsNotTheCourseCreator(deleteCourse)
         self.db.deleteCourse(deleteCourse)
 
-    def editCourseInfo(self, courseNewInfo):
+    def editCourse(self, courseNewInfo):
         self._raiseExceptionIfCourseDoesNotExists(courseNewInfo["id"])
         self._raiseExceptionIfIsNotTheCourseCreator(courseNewInfo)
         self.db.editCourse(courseNewInfo)
@@ -91,7 +95,9 @@ class CourseService:
             raise InvalidUserAction
 
     def _isTheCourseCreator(self, courseData):
-        return courseData["user_id"] == self.db.getCourse(courseData["id"])["creator_id"]
+        return (
+            courseData["user_id"] == self.db.getCourse(courseData["id"])["creator_id"]
+        )
 
     def _createDefaultFilter(self, filters):
         filter = {}

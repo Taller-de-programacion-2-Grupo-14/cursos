@@ -9,7 +9,6 @@ class DB:
         self.session = Session(engine)
 
     def addCourse(self, courseInfo):
-        # ToDo: agregar un campo mas que sea status(cancelled)
         name = courseInfo["name"]
         exams = courseInfo["exams"]
         creator_id = courseInfo["user_id"]
@@ -18,7 +17,6 @@ class DB:
         location = courseInfo["location"]
         description = courseInfo["description"]
         hashtags = courseInfo.get("hashtags", "")
-        cancelled = 0
         c = Courses(
             name=name,
             exams=exams,
@@ -28,7 +26,7 @@ class DB:
             description=description,
             hashtags=hashtags,
             location=location,
-            cancelled=cancelled
+            cancelled=0,
         )
         self.session.add(c)
         self.session.commit()
@@ -40,45 +38,50 @@ class DB:
         dic_course = {
             "name": course.name,
             "exams": course.exams,
-            "creator_name": course.creator_id,
+            "creator_id": course.creator_id,
             "type": course.type,
             "subscription": course.subscription,
             "description": course.description,
             "hashtags": course.hashtags,
             "location": course.location,
-            "cancelled": course.cancelled
+            "cancelled": course.cancelled,
         }
         return dic_course
 
     def getCourses(self, courseFilters):
-        # TODO: ver donde poner el canedit
+        courses = []
         offset = courseFilters["offset"]
         limit = courseFilters["limit"]
-        where_clause = ""
-        endings = f"offset {offset} limit {limit}"
-        if len(courseFilters) > 2:
-            where_clause = " WHERE"
-            for k, v in courseFilters:
+        where_clause = "WHERE cancelled = 0"
+        filters = courseFilters["filters"]
+        endings = f"OFFSET {offset} LIMIT {limit}"
+        if filters:
+            where_clause += " AND "
+            for k, v in filters.items():
                 if k == "offset" or k == "limit":
                     pass
-                if k == "exams":
+                if type(v) == int:
                     filter = f"{k} = {v}"
                 else:
                     filter = f"{k} LIKE '%{v}%'"
-                if where_clause != " WHERE":
-                    where_clause += "AND"
+                if where_clause != "WHERE cancelled = 0 AND ":
+                    where_clause += " AND "
                 where_clause += filter
         query = f"SELECT * FROM courses {where_clause} {endings}"
-        return self.session.execute(text(query))  # Preprocesarlos antes
+        result = self.session.execute(text(query))
+        for r in result:
+            courses.append(r._asdict())
+        return courses
 
     def deleteCourse(self, deleteCourse):
-        course_id = deleteCourse["course_id"]
-        query = f"UPDATE courses SET cancelled = 1 WHERE id = {course_id}"
-        self.session.execute(text(query))
+        id = deleteCourse["id"]
+        course = self.session.query(Courses).get(id)
+        course.cancelled = 1
+        self.session.commit()
 
     def editCourse(self, courseNewInfo):
-        course_id = courseNewInfo["course_id"]
-        course = self.session.query(Courses).get(course_id)
+        id = courseNewInfo["id"]
+        course = self.session.query(Courses).get(id)
         if "name" in courseNewInfo:
             course.name = courseNewInfo["name"]
         if "type" in courseNewInfo:
@@ -105,25 +108,13 @@ class DB:
         self.session.delete(colab)
         self.session.commit()
 
-    def getCoursesCreatedBy(self, user_id):
-        #Creo que ya no hace falta
-        courses_creator = self.session.query(Courses).filter(
-            Courses.creator_id == user_id
-        )
-        if not courses_creator.first():
-            return None
-        courses = []
-        for c in courses_creator:
-            courses.append(c)
-        return courses
-
     def getCourseCollaborators(self, courseId):
         colabs_course = self.session.query(Colaborators).filter(
             Colaborators.id_course == courseId
         )
-        if not colabs_course.first():
-            return None
         colaborators = []
+        if not colabs_course.first():
+            return colaborators
         for c in colabs_course:
             colaborators.append(c.id_colaborator)
         return colaborators
