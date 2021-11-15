@@ -10,7 +10,7 @@ def getFilters(filtersDic, offset, limit):
     return {
         "filters": filters if len(filters) else None,
         "offset": offset,
-        "limit": limit
+        "limit": limit,
     }
 
 
@@ -26,7 +26,7 @@ class CourseQueryParams:
         location: Optional[str] = Query(None, min_length=3, max_length=255),
         free_text: Optional[str] = Query(None, min_length=3, max_length=255),
         offset: Optional[int] = Query(0, ge=0),
-        limit: Optional[int] = Query(100, le=500)
+        limit: Optional[int] = Query(100, le=500),
     ):
         self.filters = {
             "name": name,
@@ -36,7 +36,7 @@ class CourseQueryParams:
             "exams": exams,
             "subscription": subscription,
             "location": location,
-            "freeText": free_text
+            "freeText": free_text,
         }
         self.offset = offset
         self.limit = limit
@@ -52,12 +52,12 @@ class UsersQueryParams:
         last_name: Optional[str] = Query(None, min_length=1, max_length=255),
         subscribers: Optional[bool] = Query(True),
         offset: Optional[int] = Query(0, ge=0),
-        limit: Optional[int] = Query(100, le=500)
+        limit: Optional[int] = Query(100, le=500),
     ):
         self.filters = {
             "firstName": first_name,
             "lastName": last_name,
-            "subscribers": subscribers
+            "subscribers": subscribers,
         }
         self.offset = offset
         self.limit = limit

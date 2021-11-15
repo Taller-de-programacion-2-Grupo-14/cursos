@@ -47,11 +47,12 @@ class UserNotFound(CourseException):
 class IsAlreadySubscribed(CourseException):
     def __init__(self):
         super().__init__(
-            status.HTTP_208_ALREADY_REPORTED,
-            "You are already subscribed to the course"
+            status.HTTP_208_ALREADY_REPORTED, "You are already subscribed to the course"
         )
 
 
 class IsNotSubscribed(CourseException):
     def __init__(self):
-        super().__init__(status.HTTP_404_NOT_FOUND, "You are not subscribed to the course")
+        super().__init__(
+            status.HTTP_404_NOT_FOUND, "You are not subscribed to the course"
+        )
