@@ -13,6 +13,9 @@ from queryParams.QueryParams import *
 from sqlalchemy import create_engine
 
 
+# engine = create_engine(
+#     "postgresql://postgres:postgres@localhost:5432/test_db", echo=True, future=True
+# )
 engine = create_engine(os.environ.get("DATABASE_URL"), echo=True, future=True)
 app = FastAPI()
 userSearcher = Users()
