@@ -11,6 +11,8 @@ from schemas.Schemas import *
 from exceptions.CourseException import CourseException
 from queryParams.QueryParams import *
 from sqlalchemy import create_engine
+import yaml
+
 
 
 # engine = create_engine(
@@ -56,6 +58,22 @@ def addCollaborator(collaborator: CollaboratorSchema):
 @app.delete("/courses/collaborators")
 def removeCollaborator(collaborator: RemoveCollaboratorSchema):
     return courseController.handleRemoveCollaborator(collaborator.dict())
+
+
+@app.get("/doc-yml")
+def getSwagger():
+    with open("docs/swagger.yaml") as f:
+        swagger = yaml.safe_load(f)
+        return swagger
+
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    return response
 
 
 @app.exception_handler(RequestValidationError)
