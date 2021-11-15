@@ -35,9 +35,7 @@ class CourseService:
         if collaborator["user_id"] in self.db.getCourseCollaborators(
             collaborator["id"]
         ):
-            raise IsAlreadyACollaborator(
-                self.db.getCourseName(collaborator["id"])
-            )
+            raise IsAlreadyACollaborator(self.db.getCourseName(collaborator["id"]))
         self.db.addCollaborator(collaborator)
 
     def removeCollaborator(self, removeCollaborator):
@@ -45,9 +43,7 @@ class CourseService:
         if removeCollaborator["user_to_remove"] not in self.db.getCourseCollaborators(
             removeCollaborator["id"]
         ):
-            raise IsNotACollaborator(
-                self.db.getCourseName(removeCollaborator["id"])
-            )
+            raise IsNotACollaborator(self.db.getCourseName(removeCollaborator["id"]))
         if removeCollaborator["user_id"] == removeCollaborator[
             "user_to_remove"
         ] or self._isTheCourseCreator(removeCollaborator, raiseException=False):

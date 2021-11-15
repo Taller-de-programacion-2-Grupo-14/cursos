@@ -12,7 +12,9 @@ from queryParams.QueryParams import *
 from sqlalchemy import create_engine
 
 
-engine = create_engine("postgresql://postgres:postgres@localhost:5432/test_db", echo=True, future=True)
+engine = create_engine(
+    "postgresql://postgres:postgres@localhost:5432/test_db", echo=True, future=True
+)
 app = FastAPI()
 courseService = CourseService(DB(engine))
 courseController = CourseController(courseService)
