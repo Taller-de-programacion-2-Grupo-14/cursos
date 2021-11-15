@@ -41,4 +41,17 @@ class IsNotACollaborator(CourseException):
 
 class UserNotFound(CourseException):
     def __init__(self):
-        super().__init__(status.HTTP_400_NOT_FOUND, "user not found")
+        super().__init__(status.HTTP_404_NOT_FOUND, "User not found")
+
+
+class IsAlreadySubscribed(CourseException):
+    def __init__(self):
+        super().__init__(
+            status.HTTP_208_ALREADY_REPORTED,
+            "You are already subscribed to the course"
+        )
+
+
+class IsNotSubscribed(CourseException):
+    def __init__(self):
+        super().__init__(status.HTTP_404_NOT_FOUND, "You are not subscribed to the course")
