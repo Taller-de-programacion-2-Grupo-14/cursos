@@ -30,15 +30,16 @@ def createCourse(createCourseData: CreateCourseSchema):
     return courseController.handleCreate(createCourseData.dict())
 
 
-@app.get("/courses/{course_id}")
-def getCourse(course_id: int):
-    return courseController.handleGet(course_id)
+# ToDo: agregar aca para que pueda ver a los usuarios el creador
+@app.get("/courses/{courseId}")
+def getCourse(courseId: int):
+    return courseController.handleGet(courseId)
 
 
 @app.get("/courses")
 def getCourses(courseFilters: CourseQueryParams = Depends(CourseQueryParams)):
     return courseController.handleGetCourses(courseFilters.dict())
-
+# ToDo: pasar el constructor de los query params a un diccionario
 
 @app.patch("/courses")
 def editCourse(courseNewInfo: EditCourseInfoSchema):
@@ -58,6 +59,26 @@ def addCollaborator(collaborator: CollaboratorSchema):
 @app.delete("/courses/collaborators")
 def removeCollaborator(collaborator: RemoveCollaboratorSchema):
     return courseController.handleRemoveCollaborator(collaborator.dict())
+
+
+@app.post("courses/subscription/{courseId}")
+def addSubscriber(courseId: int, subscriber: UserSchema):
+    return courseController.handleAddSubscriber(courseId, subscriber.user_id)
+
+
+@app.delete("courses/subscription/{courseId}")
+def removeSubscriber(courseId: int, subscriber: RemoveSubscriberSchema):
+    return courseController.handleRemoveSubscriber(courseId, subscriber.dict())
+
+
+@app.get("courses/my_courses")
+def getMyCourses(user: UserSchema):
+    return courseController.handleGetMyCourses(user.user_id)
+
+
+@app.get("courses/my_subscriptions")
+def getMyCourses(user: UserSchema):
+    return courseController.handleGetMySubscriptions(user.user_id)
 
 
 @app.get("/doc-yml")

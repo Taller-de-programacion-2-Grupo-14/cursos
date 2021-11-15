@@ -11,12 +11,14 @@ class CourseController:
 
     def handleGet(self, course_id):
         course = self.service.getCourse(course_id)
-        return {"info": course, "status": status.HTTP_200_OK}
+        return {"message": course, "status": status.HTTP_200_OK}
 
     def handleGetCourses(self, courseFilters):
-        print(courseFilters)
+        print(courseFilters) # ToDo: Delete me
+        # ToDo: si queremos los cursos creados por deberiamos tener el id
+        # que le corresponde a esa persona
         courses = self.service.getCourses(courseFilters)
-        return {"info": courses, "status": status.HTTP_200_OK}
+        return {"message": courses, "status": self._getCorrectStatus(courses)}
 
     def handleDelete(self, deleteCourse):
         self.service.deleteCourse(deleteCourse)
@@ -36,3 +38,25 @@ class CourseController:
             "message": "Collaborator correctly removed",
             "status": status.HTTP_200_OK,
         }
+
+    def handleAddSubscriber(self, courseId, subscriberId):
+        self.service.addSubscriber(courseId, subscriberId)
+        return {"message": "Successful subscription", "status": status.HTTP_200_OK}
+
+    def handleRemoveSubscriber(self, courseId, removeSubscriber):
+        self.service.removeSubscriber(courseId, removeSubscriber)
+        return {"message": "Successful unsubscription", "status": status.HTTP_200_OK}
+
+    def handleGetMyCourses(self, userId):
+        myCourses = self.service.getCourses({'creator_id': userId})
+        return {"message": myCourses, "status": self._getCorrectStatus(myCourses)}
+        # Aca podes reutilizar la funcion, pero antes no
+        # porque la UI no sabe el id del usuario que esta haciendo la consulta, tiene el token
+        # A partir del token se el id
+
+    def handleGetMySubscriptions(self, userId):
+        mySubscriptions = self.service.getMySubscriptions(userId)
+        return {"message": mySubscriptions, "status": self._getCorrectStatus(mySubscriptions)}
+
+    def _getCorrectStatus(self, array):
+        return status.HTTP_200_OK if len(array) else status.HTTP_204_NO_CONTENT
