@@ -30,8 +30,8 @@ def createCourse(createCourseData: CreateCourseSchema):
 
 
 @app.get("/courses/{courseId}")
-def getCourse(courseId: int):
-    return courseController.handleGet(courseId)
+def getCourse(courseId: int, user: UserSchema):
+    return courseController.handleGet(courseId, user.user_id)
 
 
 @app.get("/courses")
@@ -77,6 +77,11 @@ def getMyCourses(user: UserSchema):
 @app.get("courses/my_subscriptions")
 def getMySubscriptions(user: UserSchema):
     return courseController.handleGetMySubscriptions(user.user_id)
+
+
+@app.get("courses/users/{courseId}")
+def getCourseUsers(courseId: int, user: UserSchema, usersFilters: UsersQueryParams):
+    return courseController.handleGetCourseUsers(courseId, user.user_id, usersFilters)
 
 
 @app.get("/doc-yml")

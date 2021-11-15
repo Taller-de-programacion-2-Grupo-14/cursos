@@ -50,12 +50,14 @@ class UsersQueryParams:
         self,
         first_name: Optional[str] = Query(None, min_length=1, max_length=255),
         last_name: Optional[str] = Query(None, min_length=1, max_length=255),
+        subscribers: Optional[bool] = Query(True),
         offset: Optional[int] = Query(0, ge=0),
         limit: Optional[int] = Query(100, le=500)
     ):
         self.filters = {
             "firstName": first_name,
-            "lastName": last_name
+            "lastName": last_name,
+            "subscribers": subscribers
         }
         self.offset = offset
         self.limit = limit
