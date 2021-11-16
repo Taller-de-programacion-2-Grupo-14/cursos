@@ -16,7 +16,7 @@ create table courses(
 create table enrolled(
     id_course int not null,
     id_student int not null,
-    status int not null,
+    status varchar(255) default 'on course' check (status in ('on course', 'approved', 'failed')),
     foreign key(id_course) references courses(id) on delete cascade,
     primary key(id_course, id_student)
 );

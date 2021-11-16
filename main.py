@@ -14,6 +14,7 @@ from sqlalchemy import create_engine
 import yaml
 
 
+
 # engine = create_engine(
 #     "postgresql://postgres:postgres@localhost:5432/test_db", echo=True, future=True
 # )
@@ -59,28 +60,32 @@ def removeCollaborator(collaborator: RemoveCollaboratorSchema):
     return courseController.handleRemoveCollaborator(collaborator.dict())
 
 
-@app.post("courses/subscription/{courseId}")
+@app.post("/courses/subscription/{courseId}")
 def addSubscriber(courseId: int, subscriber: UserSchema):
     return courseController.handleAddSubscriber(courseId, subscriber.user_id)
 
 
-@app.delete("courses/subscription/{courseId}")
+@app.delete("/courses/subscription/{courseId}")
 def removeSubscriber(courseId: int, subscriber: UserSchema):
     return courseController.handleRemoveSubscriber(courseId, subscriber.user_id)
 
 
-@app.get("courses/my_courses")
+@app.get("/courses/my_courses")
 def getMyCourses(user: UserSchema):
     return courseController.handleGetMyCourses(user.user_id)
 
 
-@app.get("courses/my_subscriptions")
+@app.get("/courses/my_subscriptions")
 def getMySubscriptions(user: UserSchema):
     return courseController.handleGetMySubscriptions(user.user_id)
 
 
 @app.get("courses/users/{courseId}")
-def getCourseUsers(courseId: int, user: UserSchema, usersFilters: UsersQueryParams):
+def getCourseUsers(
+    courseId: int,
+    user: UserSchema,
+    usersFilters: UsersQueryParams = Depends(UsersQueryParams),
+):
     return courseController.handleGetCourseUsers(courseId, user.user_id, usersFilters)
 
 

@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from models.courses import Courses
 from models.colaborators import Colaborators
+from models.enrolled import Enrolled
 
 
 class DB:
@@ -49,7 +50,6 @@ class DB:
         return dic_course
 
     def getCourses(self, courseFilters):
-        courses = []
         offset = courseFilters["offset"]
         limit = courseFilters["limit"]
         where_clause = "WHERE cancelled = 0"
@@ -69,8 +69,7 @@ class DB:
                 where_clause += filter
         query = f"SELECT * FROM courses {where_clause} {endings}"
         result = self.session.execute(text(query))
-        for r in result:
-            courses.append(r._asdict())
+        courses = self.parse_result(result)
         return courses
 
     def deleteCourse(self, deleteCourse):
@@ -119,4 +118,63 @@ class DB:
             colaborators.append(c.id_colaborator)
         return colaborators
 
-    # ToDo: cuando agregues un estudiante acordate que necesita un status
+    def addSubscriber(self, id_course, subscriber_id):
+        enrollment = Enrolled(
+            id_course=id_course, id_student=subscriber_id, status="on course"
+        )
+        self.session.add(enrollment)
+        self.session.commit()
+
+    def removeSubscriber(self, course_id, subscriber_id):
+        suscriber = self.session.query(Courses).get((course_id, subscriber_id))
+        self.session.delete(suscriber)
+        self.session.commit()
+
+    def getMyCourses(self, user_id):
+        result = self.session.query(Courses).filter(Courses.creator_id == user_id)
+        courses = self.parse_result(result)
+        return courses
+
+    def parse_result(self, result):
+        courses = []
+        if not result:
+            return courses
+        for r in result:
+            courses.append(r._asdict())
+        return courses
+
+    def getMySubscriptions(self, user_id):
+        query = f"SELECT * FROM (SELECT id_course AS sarasa FROM enrolled WHERE id_student = {user_id}) as studentCourses JOIN courses AS c ON c.id = studentCourses.sarasa"
+        print(query)
+        result = self.session.execute(text(query))
+        subscriptions = self.parse_result(result)
+        return subscriptions
+
+
+# My Subscriptions
+
+# SELECT *
+#   FROM (SELECT id AS courseId FROM enrolled WHERE id_student = {subscriberId}) as studentCourses
+#   JOIN courses AS c
+#   ON c.id = studentCourses.courseId
+
+
+# Collaborators
+
+# SELECT *
+#   FROM (SELECT id AS courseId FROM colaborators WHERE id = {courseId}) as courseCollabs
+#   JOIN courses AS c
+#   ON c.id = courseCollabs.courseId
+
+
+# Students
+
+# SELECT *
+#   FROM (SELECT id AS courseId FROM enrolled WHERE id = {courseId}) as courseStuds
+#   JOIN courses AS c
+#   ON c.id = courseStuds.courseId
+
+
+# Created Courses
+
+# SELET * FROM courses WHERE creator_id = {userId}
