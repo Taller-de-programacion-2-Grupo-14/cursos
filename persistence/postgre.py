@@ -129,10 +129,9 @@ class DB:
         self.session.add(enrollment)
         self.session.commit()
 
-    def removeSubscriber(self, course_id, subscriber_id):
-        suscriber = self.session.query(Courses).get((course_id, subscriber_id))
-        self.session.delete(suscriber)
-        self.session.commit()
+    def removeSubscriber(self, courseId, subscriberId):
+        query = f"DELETE FROM enrolled where id_course = {courseId} AND id_student = {subscriberId}"
+        self.session.execute(text(query))
 
     def parse_result(self, result):
         courses = []
