@@ -129,11 +129,12 @@ class CourseService:
         return self.db.getCourse(courseId)["name"]
 
     def mapIdsToNames(self, userIds):
+        
         # usersInfo = self.getUser(userIds)
         # userNames = []
         # for user in usersInfo:
         #     userNames.append(user["name"])
-        return ["juan"] * len(userIds)
+        # return ["juan"] * len(userIds)
 
     def getUser(self, userId):
         try:
