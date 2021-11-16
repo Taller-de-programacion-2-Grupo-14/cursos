@@ -18,7 +18,6 @@ class DeleteCourseSchema(BaseModel):
 
 
 class EditCourseInfoSchema(BaseModel):
-    id: int
     user_id: int
     name: str = Field(min_length=1, max_length=255)
     description: str

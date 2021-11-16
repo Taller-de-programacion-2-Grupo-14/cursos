@@ -38,8 +38,10 @@ class CourseService:
             result.append(course)
         return result
 
-    def deleteCourse(self, deleteCourse):
-        self._raiseExceptionIfCourseDoesNotExists(deleteCourse["id"])
+    def deleteCourse(self, courseId, user):
+        deleteCourse = user.dict()
+        deleteCourse["id"] = courseId
+        self._raiseExceptionIfCourseDoesNotExists(courseId)
         self._raiseExceptionIfIsNotTheCourseCreator(deleteCourse)
         self.db.deleteCourse(deleteCourse)
 
