@@ -11,3 +11,10 @@ class Users:
         response = requests.get(f"{self.host}users?id={userId}")
         response.raise_for_status()
         return response.json()
+
+    def getBatchUsers(self, ids: list):
+        if not ids:
+            return {}
+        response = requests.get(f"{self.host}users/batch?ids={','.join(map(str, ids))}")
+        response.raise_for_status()
+        return response.json()

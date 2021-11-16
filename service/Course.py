@@ -72,3 +72,6 @@ class CourseService:
         except HTTPError as e:
             print(f"exception while getting user f{e}")
             raise UserNotFound()
+
+    def getBatchUsers(self, ids: list):
+        return self.userClient.getBatchUsers(ids).get("users", {})
