@@ -60,6 +60,10 @@ class DB:
             for k, v in filters.items():
                 if k == "offset" or k == "limit":
                     pass
+                if k == "freeText":
+                    free_text = filters["freeText"]
+                    where_clause += f" (name LIKE '%{free_text}%' OR \
+                                    description LIKE '%{free_text}%') "
                 if type(v) == int:
                     filter = f"{k} = {v}"
                 else:
