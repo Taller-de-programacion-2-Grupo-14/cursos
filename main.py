@@ -1,4 +1,6 @@
 import os
+
+import uvicorn
 from fastapi import FastAPI, Request, status, Depends
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -14,9 +16,9 @@ from sqlalchemy import create_engine
 import yaml
 
 dbUrl = os.environ.get("DATABASE_URL")
-print(f"url to connect is: {dbUrl}")
 if not dbUrl.startswith("postgresql"):
-    dbUrl.replace("postgres", "postgresql", 1)
+    dbUrl = dbUrl.replace("postgres", "postgresql", 1)
+print(f"url to connect is: {dbUrl}")
 engine = create_engine(dbUrl, echo=True, future=True)
 app = FastAPI()
 userSearcher = Users()
@@ -142,3 +144,6 @@ def handleUnknownException(request: Request, exc: Exception):
             }
         ),
     )
+
+if __name__ == "__main__":
+    uvicorn.run(app, port=8080)
