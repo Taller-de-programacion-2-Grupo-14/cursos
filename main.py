@@ -29,7 +29,7 @@ def createCourse(createCourseData: CreateCourseSchema):
     return courseController.handleCreate(createCourseData.dict())
 
 
-@app.get("/courses/{courseId}")
+@app.get("/courses/{courseId}/view")
 def getCourse(courseId: int, user: UserSchema):
     return courseController.handleGet(courseId, user.user_id)
 
@@ -79,13 +79,15 @@ def getMySubscriptions(user: UserSchema):
     return courseController.handleGetMySubscriptions(user.user_id)
 
 
-@app.get("courses/users/{courseId}")
+@app.get("/courses/users/{courseId}")
 def getCourseUsers(
     courseId: int,
     user: UserSchema,
     usersFilters: UsersQueryParams = Depends(UsersQueryParams),
 ):
-    return courseController.handleGetCourseUsers(courseId, user.user_id, usersFilters)
+    return courseController.handleGetCourseUsers(
+        courseId, user.user_id, usersFilters.getFilters()
+    )
 
 
 @app.get("/doc-yml")

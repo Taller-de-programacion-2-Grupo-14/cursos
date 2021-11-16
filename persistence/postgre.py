@@ -147,7 +147,7 @@ class DB:
         return subscriptions
 
     def getUsers(self, courseId, userFilters):
-        getSubscribers = userFilters["subscribers"]
+        getSubscribers = userFilters["filters"]["subscribers"]
         table = "enrolled" if getSubscribers else "colaborators"
         userId = "id_student" if getSubscribers else "id_colaborator"
         offset = userFilters["offset"]

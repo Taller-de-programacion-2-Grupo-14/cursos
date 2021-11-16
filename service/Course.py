@@ -98,7 +98,6 @@ class CourseService:
 
     def getMyCourses(self, userId):
         return self.db.getMyCourses(userId)
-        
 
     # Auxiliar Functions
     def _getCourseNames(self, courses):
@@ -130,10 +129,11 @@ class CourseService:
         return self.db.getCourse(courseId)["name"]
 
     def mapIdsToNames(self, userIds):
-        usersInfo = self.getUser(userIds)
-        userNames = []
-        for user in usersInfo:
-            userNames.append(user["name"])
+        # usersInfo = self.getUser(userIds)
+        # userNames = []
+        # for user in usersInfo:
+        #     userNames.append(user["name"])
+        return ["juan"] * len(userIds)
 
     def getUser(self, userId):
         try:
@@ -149,4 +149,4 @@ class CourseService:
                 result.append(user["id_student"])
             else:
                 result.append(user["id_colaborator"])
-        return reuslt
+        return result
