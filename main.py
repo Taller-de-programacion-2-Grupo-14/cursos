@@ -13,10 +13,10 @@ from queryParams.QueryParams import *
 from sqlalchemy import create_engine
 import yaml
 
-
-# engine = create_engine(
-#     "postgresql://postgres:postgres@localhost:5432/test_db", echo=True, future=True
-# )
+dbUrl = os.environ.get("DATABASE_URL")
+print(f"url to connect is: {dbUrl}")
+if not dbUrl.startswith("postgresql"):
+    dbUrl.replace("postgres", "postgresql", 1)
 engine = create_engine(os.environ.get("DATABASE_URL"), echo=True, future=True)
 app = FastAPI()
 userSearcher = Users()
