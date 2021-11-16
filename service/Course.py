@@ -28,15 +28,17 @@ class CourseService:
         data = self.mapIdsToNames([course["creator_id"]])[0]
         course["creator_first_name"] = data["first_name"]
         course["creator_last_name"] = data["last_name"]
+        course["can_edit"] = userId == course["creator_id"]
         return course
 
-    def getCourses(self, courseFilters):
+    def getCourses(self, userId, courseFilters):
         courses = self.db.getCourses(courseFilters)
         result = []
         for course in courses:
             data = self.mapIdsToNames([course["creator_id"]])[0]
             course["creator_first_name"] = data["first_name"]
             course["creator_last_name"] = data["last_name"]
+            course["can_edit"] = userId == course["creator_id"]
             result.append(course)
         return result
 

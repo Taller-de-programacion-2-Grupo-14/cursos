@@ -35,8 +35,8 @@ def getCourse(courseId: int, user: UserSchema):
 
 
 @app.get("/courses")
-def getCourses(courseFilters: CourseQueryParams = Depends(CourseQueryParams)):
-    return courseController.handleGetCourses(courseFilters.getFilters())
+def getCourses(user: UserSchema, courseFilters: CourseQueryParams = Depends(CourseQueryParams)):
+    return courseController.handleGetCourses(user.user_id, courseFilters.getFilters())
 
 
 @app.patch("/courses/{courseId}")

@@ -16,8 +16,8 @@ class CourseController:
         course = self.service.getCourse(courseId, userId)
         return {"message": course, "status": status.HTTP_200_OK}
 
-    def handleGetCourses(self, courseFilters):
-        courses = self.service.getCourses(courseFilters)
+    def handleGetCourses(self, userId, courseFilters):
+        courses = self.service.getCourses(userId, courseFilters)
         return {"message": courses, "status": self._getCorrectStatus(courses)}
 
     def handleDelete(self, courseId, user):
