@@ -77,6 +77,7 @@ class CourseService:
 
     def addSubscriber(self, courseId, subscriberId):
         self._raiseExceptionIfCourseDoesNotExists(courseId)
+        self._raiseExceptionIfSubscriptionInvalid(courseId, subscriberId)
         # if subscriberId in self.db.getSubscribers(courseId):
         #     raise IsAlreadySubscribed
         self.db.addSubscriber(courseId, subscriberId)
@@ -136,6 +137,14 @@ class CourseService:
         if self.db.getCourse(courseId) is None:
             raise CourseDoesNotExist
 
+    def _raiseExceptionIfSubscriptionInvalid(self, courseId, subscriberId):
+        courses = {"Basico": 1, "Estandar": 2, "Premium": 3}
+        users = {"free": 1, "platinum": 2, "black": 3}
+        course_subscription = self.db.getCourse(courseId)["subscription"]
+        user_subscription = self.mapIdsToNames(subscriberId)
+        if users[user_subscription] < courses[course_subscription]:
+            raise SubscriptionInvalid
+
     def _raiseExceptionIfIsNotTheCourseCreator(self, courseData):
         if courseData["user_id"] != self.db.getCourse(courseData["id"])["creator_id"]:
             raise InvalidUserAction
@@ -161,10 +170,12 @@ class CourseService:
             first_name = user.get("first_name", "")
             last_name = user.get("last_name", "")
             user_id = user.get("user_id", "")
+            subscription = user.get("subscription", "")
             data = {
                 "first_name": first_name,
                 "last_name": last_name,
                 "user_id": user_id,
+                "subscription": subscription
             }
             users.append(data)
         return users
