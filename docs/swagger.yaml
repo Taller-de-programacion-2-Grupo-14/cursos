@@ -81,7 +81,7 @@ paths:
         '400':
           description: Bad Request
 
-  '/courses/:id/view':
+  '/courses/{id}/view':
     'get':
       tags:
         - Course
@@ -112,7 +112,7 @@ paths:
         '404':
           description: Curso no existe
 
-  '/courses/:id':
+  '/courses/{id}':
     'delete':
       tags:
         - Course
@@ -232,7 +232,7 @@ paths:
         '404':
           description: El collaborator no existe
 
-  '/courses/subscription/:id':
+  '/courses/subscription/{id}':
     'post':
       tags:
         - Course
@@ -318,7 +318,7 @@ paths:
         '204':
           description: No content
 
-  '/courses/users/:id':
+  '/courses/users/{id}':
     'get':
       tags:
         - Course
