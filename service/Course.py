@@ -93,8 +93,12 @@ class CourseService:
     def getUsers(self, courseId, userId, usersFilters):
         self._raiseExceptionIfCourseDoesNotExists(courseId)
         self._raiseExceptionIfIsNotTheCourseCreator({"id": courseId, "user_id": userId})
-        userIds = self.db.getUsers(courseId, usersFilters)
+        userIds = self._parseResult(self.db.getUsers(courseId, usersFilters))
         return self.mapIdsToNames(userIds)
+
+    def getMyCourses(self, userId):
+        return self.db.getMyCourses(userId)
+        
 
     # Auxiliar Functions
     def _getCourseNames(self, courses):
@@ -137,3 +141,12 @@ class CourseService:
         except HTTPError as e:
             print(f"exception while getting user f{e}")
             raise UserNotFound()
+
+    def _parseResult(self, users):
+        result = []
+        for user in users:
+            if "id_student" in user:
+                result.append(user["id_student"])
+            else:
+                result.append(user["id_colaborator"])
+        return reuslt

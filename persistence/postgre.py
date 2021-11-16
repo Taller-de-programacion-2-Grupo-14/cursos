@@ -130,11 +130,6 @@ class DB:
         self.session.delete(suscriber)
         self.session.commit()
 
-    def getMyCourses(self, user_id):
-        result = self.session.query(Courses).filter(Courses.creator_id == user_id)
-        courses = self.parse_result(result)
-        return courses
-
     def parse_result(self, result):
         courses = []
         if not result:
@@ -144,36 +139,26 @@ class DB:
         return courses
 
     def getMySubscriptions(self, user_id):
-        query = f"SELECT * FROM (SELECT id_course AS sarasa FROM enrolled WHERE id_student = {user_id}) as studentCourses JOIN courses AS c ON c.id = studentCourses.sarasa"
+        query = f"SELECT * FROM (SELECT id_course AS courseId FROM enrolled WHERE id_student \
+                = {user_id}) as studentCourses JOIN courses AS c ON c.id \
+                = studentCourses.courseId"
         result = self.session.execute(text(query))
         subscriptions = self.parse_result(result)
         return subscriptions
 
+    def getUsers(self, courseId, userFilters):
+        getSubscribers = userFilters["subscribers"]
+        table = "enrolled" if getSubscribers else "colaborators"
+        userId = "id_student" if getSubscribers else "id_colaborator"
+        offset = userFilters["offset"]
+        limit = userFilters["limit"]
+        query = f"SELECT {userId} FROM {table} WHERE id_course = {courseId} OFFSET {offset} LIMIT {limit}"
+        result = self.session.execute(text(query))
+        courses = self.parse_result(result)
+        return courses
 
-# My Subscriptions
-
-# SELECT *
-#   FROM (SELECT id AS courseId FROM enrolled WHERE id_student = {subscriberId}) as studentCourses
-#   JOIN courses AS c
-#   ON c.id = studentCourses.courseId
-
-
-# Collaborators
-
-# SELECT *
-#   FROM (SELECT id AS courseId FROM colaborators WHERE id = {courseId}) as courseCollabs
-#   JOIN courses AS c
-#   ON c.id = courseCollabs.courseId
-
-
-# Students
-
-# SELECT *
-#   FROM (SELECT id AS courseId FROM enrolled WHERE id = {courseId}) as courseStuds
-#   JOIN courses AS c
-#   ON c.id = courseStuds.courseId
-
-
-# Created Courses
-
-# SELET * FROM courses WHERE creator_id = {userId}
+    def getMyCourses(self, userId):
+        query = f"SELECT * FROM courses WHERE creator_id = {userId}"
+        result = self.session.execute(text(query))
+        courses = self.parse_result(result)
+        return courses
