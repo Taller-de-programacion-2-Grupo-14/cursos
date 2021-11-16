@@ -145,7 +145,6 @@ class DB:
 
     def getMySubscriptions(self, user_id):
         query = f"SELECT * FROM (SELECT id_course AS sarasa FROM enrolled WHERE id_student = {user_id}) as studentCourses JOIN courses AS c ON c.id = studentCourses.sarasa"
-        print(query)
         result = self.session.execute(text(query))
         subscriptions = self.parse_result(result)
         return subscriptions

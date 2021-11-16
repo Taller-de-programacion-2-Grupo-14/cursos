@@ -25,7 +25,7 @@ class CourseService:
         course = self.db.getCourse(courseId)
         if course["cancelled"] and course["creator_id"] != userId:
             return []
-        course["creator_name"] = self.mapIdToName(course["creator_id"])
+        course["creator_name"] = self.mapIdsToNames([course["creator_id"]])
         del course["creator_id"]
         return course
 
@@ -33,7 +33,7 @@ class CourseService:
         courses = self.db.getCourses(courseFilters)
         result = []
         for course in courses:
-            course["creator_name"] = self.mapIdToName(course["creator_id"])
+            course["creator_name"] = self.mapIdsToNames([course["creator_id"]])
             del course["creator_id"]
             result.append(course)
         return result
@@ -71,8 +71,8 @@ class CourseService:
 
     def addSubscriber(self, courseId, subscriberId):
         self._raiseExceptionIfCourseDoesNotExists(courseId)
-        # if subscriberId in self.db.getSubscribers(courseId):
-        #     raise IsAlreadySubscribed
+        if subscriberId in self.db.getSubscribers(courseId):
+            raise IsAlreadySubscribed
         self.db.addSubscriber(courseId, subscriberId)
 
     def removeSubscriber(self, courseId, subscriberId):
@@ -85,7 +85,7 @@ class CourseService:
         mySubscriptions = self.db.getMySubscriptions(userId)
         result = []
         for course in mySubscriptions:
-            course["creator_name"] = self.mapIdToName(course["creator_id"])
+            course["creator_name"] = self.mapIdsToNames([course["creator_id"]])
             del course["creator_id"]
             result.append(course)
         return result
@@ -93,8 +93,8 @@ class CourseService:
     def getUsers(self, courseId, userId, usersFilters):
         self._raiseExceptionIfCourseDoesNotExists(courseId)
         self._raiseExceptionIfIsNotTheCourseCreator({"id": courseId, "user_id": userId})
-        users = self.db.getUsers(courseId, usersFilters)
-        return list(map(self.mapIdToName, users))
+        userIds = self.db.getUsers(courseId, usersFilters)
+        return self.mapIdsToNames(userIds)
 
     # Auxiliar Functions
     def _getCourseNames(self, courses):
@@ -125,9 +125,11 @@ class CourseService:
     def _getCourseName(self, courseId):
         return self.db.getCourse(courseId)["name"]
 
-    def mapIdToName(self, userId):
-        return "Juan"
-        # return self.getUser(userId)
+    def mapIdsToNames(self, userIds):
+        usersInfo = self.getUser(userIds)
+        userNames = []
+        for user in usersInfo:
+            userNames.append(user["name"])
 
     def getUser(self, userId):
         try:
