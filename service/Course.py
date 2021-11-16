@@ -25,16 +25,18 @@ class CourseService:
         course = self.db.getCourse(courseId)
         if course["cancelled"] and course["creator_id"] != userId:
             return []
-        course["creator_name"] = self.mapIdsToNames([course["creator_id"]])[0]
-        del course["creator_id"]
+        data = self.mapIdsToNames([course["creator_id"]])[0]
+        course["creator_first_name"] = data["first_name"]
+        course["creator_last_name"] = data["last_name"]
         return course
 
     def getCourses(self, courseFilters):
         courses = self.db.getCourses(courseFilters)
         result = []
         for course in courses:
-            course["creator_name"] = self.mapIdsToNames([course["creator_id"]])[0]
-            del course["creator_id"]
+            data = self.mapIdsToNames([course["creator_id"]])[0]
+            course["creator_first_name"] = data["first_name"]
+            course["creator_last_name"] = data["last_name"]
             result.append(course)
         return result
 
@@ -87,8 +89,9 @@ class CourseService:
         mySubscriptions = self.db.getMySubscriptions(userId)
         result = []
         for course in mySubscriptions:
-            course["creator_name"] = self.mapIdsToNames([course["creator_id"]])[0]
-            del course["creator_id"]
+            data = self.mapIdsToNames([course["creator_id"]])[0]
+            course["creator_first_name"] = data["first_name"]
+            course["creator_last_name"] = data["last_name"]
             result.append(course)
         return result
 
