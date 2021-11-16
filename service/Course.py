@@ -101,6 +101,27 @@ class CourseService:
         self._raiseExceptionIfCourseDoesNotExists(courseId)
         self._raiseExceptionIfIsNotTheCourseCreator({"id": courseId, "user_id": userId})
         userIds = self._parseResult(self.db.getUsers(courseId, usersFilters))
+        result = []
+        for user in self.mapIdsToNames(userIds):
+            if (
+                "firstName" in usersFilters
+                and user["first_name"] == usersFilters["firstName"]
+            ):
+                if "lastName" not in usersFilters:
+                    result.append(user)
+                else:
+                    if user["last_name"] == usersFilters["lastName"]:
+                        result.append(user)
+            elif (
+                "lastName" in usersFilters
+                and user["last_name"] == usersFilters["lastName"]
+            ):
+                if "firstName" not in usersFilters:
+                    result.append(user)
+                else:
+                    if user["first_name"] == usersFilters["firstName"]:
+                        result.append(user)
+
         return self.mapIdsToNames(userIds)
 
     def getMyCourses(self, userId):
