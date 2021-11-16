@@ -1,3 +1,5 @@
+![linter](https://github.com/Taller-de-programacion-2-Grupo-14/cursos/actions/workflows/linter.yml/badge.svg)
+
 # Cursos
 API encargada de todas las operaciones relacionadas a cursos
 
