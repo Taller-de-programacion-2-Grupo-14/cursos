@@ -142,8 +142,8 @@ class CourseService:
         users = {"free": 1, "platinum": 2, "black": 3}
         data_course = self.db.getCourse(courseId)
         course_subscription = str(data_course["subscription"])
-        data_user = self.mapIdsToNames(subscriberId)
-        user_subscription = str((data_user[0])["subscription"])
+        data_user = self.mapIdsToNames(subscriberId)[0]
+        user_subscription = str(data_user["subscription"])
         if users[user_subscription] < courses[course_subscription]:
             raise SubscriptionInvalid
 
