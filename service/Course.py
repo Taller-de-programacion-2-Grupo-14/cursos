@@ -132,7 +132,15 @@ class CourseService:
         info = self.getBatchUsers(userIds)
         users = []
         for user in info:
-            users.append(user.get("first_name", ""))
+            first_name = user.get("first_name", "")
+            last_name = user.get("last_name", "")
+            user_id = user.get("user_id", "")
+            data = {
+                "first_name": first_name,
+                "last_name": last_name,
+                "user_id": user_id
+            }
+            users.append(data)
         return users
 
     def getUser(self, userId):
