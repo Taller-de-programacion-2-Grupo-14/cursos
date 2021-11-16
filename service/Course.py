@@ -140,8 +140,10 @@ class CourseService:
     def _raiseExceptionIfSubscriptionInvalid(self, courseId, subscriberId):
         courses = {"Basico": 1, "Estandar": 2, "Premium": 3}
         users = {"free": 1, "platinum": 2, "black": 3}
-        course_subscription = str(self.db.getCourse(courseId)["subscription"])
-        user_subscription = str(self.mapIdsToNames(subscriberId)[0]["subscription"])
+        data_course = self.db.getCourse(courseId)
+        course_subscription = str(data_course["subscription"])
+        data_user = self.mapIdsToNames(subscriberId)
+        user_subscription = str((data_user[0])["subscription"])
         if users[user_subscription] < courses[course_subscription]:
             raise SubscriptionInvalid
 
