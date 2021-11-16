@@ -39,14 +39,16 @@ def getCourses(courseFilters: CourseQueryParams = Depends(CourseQueryParams)):
     return courseController.handleGetCourses(courseFilters.getFilters())
 
 
-@app.patch("/courses")
-def editCourse(courseNewInfo: EditCourseInfoSchema):
-    return courseController.handleEdit(courseNewInfo.dict())
+@app.patch("/courses/{courseId}")
+def editCourse(courseId: int, courseNewInfo: EditCourseInfoSchema):
+    courseNewInfo = courseNewInfo.dict()
+    courseNewInfo["id"] = courseId
+    return courseController.handleEdit(courseNewInfo)
 
 
-@app.delete("/courses")
-def deleteCourse(deleteCourseData: DeleteCourseSchema):
-    return courseController.handleDelete(deleteCourseData.dict())
+@app.delete("/courses/{courseId}")
+def deleteCourse(courseId: int, user: UserSchema):
+    return courseController.handleDelete(courseId, user)
 
 
 @app.post("/courses/collaborators")
