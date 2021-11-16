@@ -17,7 +17,7 @@ dbUrl = os.environ.get("DATABASE_URL")
 print(f"url to connect is: {dbUrl}")
 if not dbUrl.startswith("postgresql"):
     dbUrl.replace("postgres", "postgresql", 1)
-engine = create_engine(os.environ.get("DATABASE_URL"), echo=True, future=True)
+engine = create_engine(dbUrl, echo=True, future=True)
 app = FastAPI()
 userSearcher = Users()
 courseService = CourseService(DB(engine), userSearcher)
