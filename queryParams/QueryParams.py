@@ -17,14 +17,14 @@ def getFilters(filtersDic, offset, limit):
 class CourseQueryParams:
     def __init__(
         self,
-        name: Optional[str] = Query(None, min_length=1, max_length=255),
-        creator_name: Optional[str] = Query(None, min_length=1, max_length=50),
+        name: Optional[str] = Query(None, max_length=255),
+        creator_name: Optional[str] = Query(None, max_length=50),
         hashtags: Optional[str] = None,
         course_type: Optional[str] = None,
         exams: Optional[int] = Query(None, ge=0),
         subscription: Optional[str] = None,
-        location: Optional[str] = Query(None, min_length=3, max_length=255),
-        free_text: Optional[str] = Query(None, min_length=3, max_length=255),
+        location: Optional[str] = Query(None, max_length=255),
+        free_text: Optional[str] = Query(None, max_length=255),
         offset: Optional[int] = Query(0, ge=0),
         limit: Optional[int] = Query(100, le=500),
     ):
@@ -48,8 +48,8 @@ class CourseQueryParams:
 class UsersQueryParams:
     def __init__(
         self,
-        first_name: Optional[str] = Query(None, min_length=1, max_length=255),
-        last_name: Optional[str] = Query(None, min_length=1, max_length=255),
+        first_name: Optional[str] = Query(None, max_length=255),
+        last_name: Optional[str] = Query(None, max_length=255),
         subscribers: Optional[bool] = Query(True),
         offset: Optional[int] = Query(0, ge=0),
         limit: Optional[int] = Query(100, le=500),

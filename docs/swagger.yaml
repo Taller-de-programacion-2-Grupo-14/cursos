@@ -75,6 +75,37 @@ paths:
         '400':
           description: Bad Request
 
+  '/courses/:id/view':
+    'get':
+      tags:
+        - Course
+      description: Obtiene informacion mas detallada sobre el curso
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+          required: true
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido de usuario
+      requestBody:
+        description: Body para obtener la informacion de un curso
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getCourseInfo'
+      responses:
+        '200':
+          description: Todo okay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/courseInfo'
+        '404':
+          description: Curso no existe
+
   '/courses/:id':
     'post':
       tags:
@@ -127,35 +158,6 @@ paths:
         '404':
           description: Curso no encontrado
 
-    'get':
-      tags:
-        - Course
-      description: Obtiene informacion mas detallada sobre el curso
-      parameters:
-        - in: path
-          name: id
-          description: id del curso
-          required: true
-        - in: header
-          name: x-access-token
-          required: true
-          description: token recibido de usuario
-      requestBody:
-        description: Body para obtener la informacion de un curso
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/getCourseInfo'
-      responses:
-        '200':
-          description: Todo okay
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/courseInfo'
-        '404':
-          description: Curso no existe
     'patch':
       tags:
         - Course
@@ -248,10 +250,10 @@ components:
     courseCreate:
       type: object
       required:
-        - course_name
-        - course_description
+        - name
+        - description
         - hashtags
-        - course_type
+        - type
         - amount_exams
         - subscription
         - location
