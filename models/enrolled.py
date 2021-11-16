@@ -8,4 +8,4 @@ class Enrolled(Base):
     id_course = Column(Integer, ForeignKey("courses.id", on_delete="CASCADE"))
     id_student = Column(Integer)
     status = Column(String)
-    __table_args__ = (PrimaryKeyConstraint("id_student", "id_course", name="id"), )
+    __table_args__ = (PrimaryKeyConstraint("id_student", "id_course", name="id"),)
