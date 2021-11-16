@@ -25,7 +25,7 @@ class CourseService:
         course = self.db.getCourse(courseId)
         if course["cancelled"] and course["creator_id"] != userId:
             return []
-        course["creator_name"] = self.mapIdsToNames([course["creator_id"]])
+        course["creator_name"] = self.mapIdsToNames([course["creator_id"]])[0]
         del course["creator_id"]
         return course
 
@@ -129,12 +129,11 @@ class CourseService:
         return self.db.getCourse(courseId)["name"]
 
     def mapIdsToNames(self, userIds):
-        return self.getBatchUsers(userIds)
-        # usersInfo = self.getUser(userIds)
-        # userNames = []
-        # for user in usersInfo:
-        #     userNames.append(user["name"])
-        # return ["juan"] * len(userIds)
+        info = self.getBatchUsers(userIds)
+        users = []
+        for user in info:
+            users.append(user.get("first_name", ""))
+        return users
 
     def getUser(self, userId):
         try:
@@ -153,4 +152,4 @@ class CourseService:
         return result
 
     def getBatchUsers(self, ids: list):
-        return self.userClient.getBatchUsers(ids).get("users", {})
+        return self.userClient.getBatchUsers(ids).get("users", [])
