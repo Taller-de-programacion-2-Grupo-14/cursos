@@ -64,7 +64,7 @@ class DB:
                     free_text = filters["freeText"]
                     where_clause += f" (name LIKE '%{free_text}%' OR \
                                     description LIKE '%{free_text}%') "
-                if type(v) == int:
+                elif type(v) == int:
                     filter = f"{k} = {v}"
                 else:
                     filter = f"{k} LIKE '%{v}%'"
