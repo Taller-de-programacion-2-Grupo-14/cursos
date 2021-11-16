@@ -140,7 +140,7 @@ class CourseService:
             data = {
                 "first_name": first_name,
                 "last_name": last_name,
-                "user_id": user_id
+                "user_id": user_id,
             }
             users.append(data)
         return users
