@@ -245,6 +245,130 @@ paths:
         '404':
           description: El collaborator no existe
 
+  '/courses/subscription/:courseId':
+    'post':
+      tags:
+        - Course
+      description: Agrega un suscriptor al curso
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido del creador del curso
+      responses:
+        '200':
+          description: Suscriptor agregado correctamente
+        '401':
+          description: Token invalido
+        '403':
+          description: No token provisto
+        '404':
+          description: El curso no existe
+
+    'delete':
+      tags:
+        - Course
+      description: Elimina a un suscriptor del curso
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido del creador del curso
+
+      responses:
+        '200':
+          description: Suscriptor eliminado correctamente
+        '401':
+          description: Token invalido
+        '403':
+          description: No token provisto
+        '404':
+          description: El curso no existe
+
+  '/courses/my_courses':
+    'get':
+      tags:
+        - Course
+      description: Obtiene los cursos que cree
+      parameters:
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido de usuario
+      responses:
+        '200':
+          description: Todo okay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/myCourses'
+        '204':
+          description: No content
+
+  '/courses/my_subscriptions':
+    'get':
+      tags:
+        - Course
+      description: Obtiene los cursos que cree
+      parameters:
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido de usuario
+      responses:
+        '200':
+          description: Todo okay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mySubscriptions'
+        '204':
+          description: No content
+
+  '/courses/users/:courseId':
+    'get':
+      tags:
+        - Course
+      description: Obtiene los alumnos o colaboradores de un curso
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+        - in: query
+          name: first_name
+          example: 'Juan'
+        - in: query
+          name: last_name
+          example: 'Perez'
+        - in: query
+          name: subscribers
+          example: 'true'
+        - in: query
+          name: offset
+          example: 0
+        - in: query
+          name: limit
+          example: 100
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido de usuario
+      responses:
+        '200':
+          description: Todo okay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/userNames'
+        '204':
+          description: No content
+
 components:
   schemas:
     courseCreate:
@@ -403,3 +527,23 @@ components:
         id:
           type: integer
           example: 1
+    myCourses:
+      type: object
+      properties:
+        myCourses:
+          type: array
+
+    mySubscriptions:
+      type: object
+      properties:
+        mySubscriptions:
+          type: array
+
+    userNames:
+      type: object
+      properties:
+        userNames:
+          type: array
+          items:
+            type: string
+          example: ['juan','pedro']
