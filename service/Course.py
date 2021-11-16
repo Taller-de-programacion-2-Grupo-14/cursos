@@ -71,14 +71,14 @@ class CourseService:
 
     def addSubscriber(self, courseId, subscriberId):
         self._raiseExceptionIfCourseDoesNotExists(courseId)
-        if subscriberId in self.db.getSubscribers(courseId):
-            raise IsAlreadySubscribed
+        # if subscriberId in self.db.getSubscribers(courseId):
+        #     raise IsAlreadySubscribed
         self.db.addSubscriber(courseId, subscriberId)
 
     def removeSubscriber(self, courseId, subscriberId):
         self._raiseExceptionIfCourseDoesNotExists(courseId)
-        if subscriberId not in self.db.getSubscribers(courseId):
-            raise IsNotSubscribed
+        # if subscriberId not in self.db.getSubscribers(courseId):
+        #     raise IsNotSubscribed
         self.db.removeSubscriber(courseId, subscriberId)
 
     def getMySubscriptions(self, userId):
