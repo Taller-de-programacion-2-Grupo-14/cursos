@@ -95,13 +95,6 @@ paths:
           name: x-access-token
           required: true
           description: token recibido de usuario
-      requestBody:
-        description: Body para obtener la informacion de un curso
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/getCourseInfo'
       responses:
         '200':
           description: Todo okay
