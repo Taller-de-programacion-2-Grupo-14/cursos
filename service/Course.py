@@ -105,7 +105,8 @@ class CourseService:
         result = []
         for user in self.mapIdsToNames(userIds):
             if (
-                "firstName" in usersFilters and user["first_name"] == usersFilters["firstName"]
+                "firstName" in usersFilters
+                and user["first_name"] == usersFilters["firstName"]
             ):
                 if "lastName" not in usersFilters:
                     result.append(user)
@@ -113,7 +114,8 @@ class CourseService:
                     if user["last_name"] == usersFilters["lastName"]:
                         result.append(user)
             elif (
-                "lastName" in usersFilters and user["last_name"] == usersFilters["lastName"]
+                "lastName" in usersFilters
+                and user["last_name"] == usersFilters["lastName"]
             ):
                 if "firstName" not in usersFilters:
                     result.append(user)
@@ -177,7 +179,7 @@ class CourseService:
                 "first_name": first_name,
                 "last_name": last_name,
                 "user_id": user_id,
-                "subscription": subscription
+                "subscription": subscription,
             }
             users.append(data)
         return users

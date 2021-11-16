@@ -61,5 +61,6 @@ class IsNotSubscribed(CourseException):
 class SubscriptionInvalid(CourseException):
     def __init__(self):
         super().__init__(
-            status.HTTP_403_FORBIDDEN, "You should upgrade your membership to enrole this course"
+            status.HTTP_403_FORBIDDEN,
+            "You should upgrade your membership to enrole this course",
         )
