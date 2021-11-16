@@ -33,7 +33,7 @@ class CourseService:
         courses = self.db.getCourses(courseFilters)
         result = []
         for course in courses:
-            course["creator_name"] = self.mapIdsToNames([course["creator_id"]])
+            course["creator_name"] = self.mapIdsToNames([course["creator_id"]])[0]
             del course["creator_id"]
             result.append(course)
         return result
@@ -85,7 +85,7 @@ class CourseService:
         mySubscriptions = self.db.getMySubscriptions(userId)
         result = []
         for course in mySubscriptions:
-            course["creator_name"] = self.mapIdsToNames([course["creator_id"]])
+            course["creator_name"] = self.mapIdsToNames([course["creator_id"]])[0]
             del course["creator_id"]
             result.append(course)
         return result

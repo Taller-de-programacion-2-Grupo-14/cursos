@@ -62,6 +62,9 @@ paths:
           name: exams
           example: 5
         - in: query
+          name: free_text
+          example: 'tres tristes tigres'
+        - in: query
           name: offset
           example: 0
         - in: query
@@ -110,25 +113,6 @@ paths:
           description: Curso no existe
 
   '/courses/:id':
-    'post':
-      tags:
-        - Course
-      description: Se inscribe un estudiante al curso
-      parameters:
-        - in: path
-          name: id
-          description: id del curso
-          required: true
-        - in: header
-          name: x-access-token
-          required: true
-          description: token recibido del usuario que desea inscribirse al curso
-      responses:
-        '200':
-          description: Usuario suscrito correctamente
-        '400':
-          description: Bad Request
-
     'delete':
       tags:
         - Course
@@ -248,7 +232,7 @@ paths:
         '404':
           description: El collaborator no existe
 
-  '/courses/subscription/:courseId':
+  '/courses/subscription/:id':
     'post':
       tags:
         - Course
@@ -334,7 +318,7 @@ paths:
         '204':
           description: No content
 
-  '/courses/users/:courseId':
+  '/courses/users/:id':
     'get':
       tags:
         - Course
