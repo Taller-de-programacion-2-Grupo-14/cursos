@@ -59,6 +59,9 @@ paths:
           name: subscription
           example: 'Premium'
         - in: query
+          name: exams
+          example: 5
+        - in: query
           name: offset
           example: 0
         - in: query
