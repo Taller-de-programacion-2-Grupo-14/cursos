@@ -48,12 +48,12 @@ class CourseController:
         return {"message": "Successful unsubscription", "status": status.HTTP_200_OK}
 
     def handleGetMyCourses(self, userId):
-        filter = {
-            "filters": {"creator_id": userId},
-            "offset": DEFAULT_OFFSET,
-            "limit": DEFAULT_LIMIT,
-        }
-        myCourses = self.service.getCourses(filter)
+        # filter = {
+        #     "filters": {"creator_id": userId},
+        #     "offset": DEFAULT_OFFSET,
+        #     "limit": DEFAULT_LIMIT,
+        # }
+        myCourses = self.service.getMyCourses(userId)
         return {"message": myCourses, "status": self._getCorrectStatus(myCourses)}
 
     def handleGetMySubscriptions(self, userId):
