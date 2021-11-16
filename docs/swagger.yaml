@@ -70,6 +70,10 @@ paths:
         - in: query
           name: limit
           example: 500
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido de usuario
 
       responses:
         '200':
