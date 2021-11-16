@@ -152,7 +152,8 @@ class DB:
         userId = "id_student" if getSubscribers else "id_colaborator"
         offset = userFilters["offset"]
         limit = userFilters["limit"]
-        query = f"SELECT {userId} FROM {table} WHERE id_course = {courseId} OFFSET {offset} LIMIT {limit}"
+        query = f"SELECT {userId} FROM {table} WHERE id_course = {courseId} \
+                OFFSET {offset} LIMIT {limit}"
         result = self.session.execute(text(query))
         courses = self.parse_result(result)
         return courses
