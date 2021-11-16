@@ -129,7 +129,7 @@ class CourseService:
         return self.db.getCourse(courseId)["name"]
 
     def mapIdsToNames(self, userIds):
-        
+        return self.getBatchUsers(userIds)
         # usersInfo = self.getUser(userIds)
         # userNames = []
         # for user in usersInfo:
@@ -151,3 +151,6 @@ class CourseService:
             else:
                 result.append(user["id_colaborator"])
         return result
+
+    def getBatchUsers(self, ids: list):
+        return self.userClient.getBatchUsers(ids).get("users", {})
