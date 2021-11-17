@@ -1,6 +1,6 @@
 openapi: "3.0.0"
 servers:
-  - url: 'https://ubademy-14.herokuapp.com/'
+  - url: 'https://ubademy-14-prod.herokuapp.com/'
 info:
   description: Course API encargada de todas las operaciones relacionadas a cursos
   version: 0.2.0
@@ -33,6 +33,7 @@ paths:
           description: Curso creado correctamente
         '400':
           description: Bad Request
+
   '/courses':
     'get':
       tags:
@@ -40,9 +41,40 @@ paths:
       description: Obtengo una lista con todos los cursos
       parameters:
         - in: query
-          name: intereses
+          name: location
+          example: 'Colombia'
         - in: query
-          name: suscripcion
+          name: name
+          example: 'Algoritmos2'
+        - in: query
+          name: creator_name
+          example: 'Essaya'
+        - in: query
+          name: hashtags
+          example: 'python,nacho,branca'
+        - in: query
+          name: type
+          example: 'Programacion'
+        - in: query
+          name: subscription
+          example: 'Premium'
+        - in: query
+          name: exams
+          example: 5
+        - in: query
+          name: free_text
+          example: 'tres tristes tigres'
+        - in: query
+          name: offset
+          example: 0
+        - in: query
+          name: limit
+          example: 500
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido de usuario
+
       responses:
         '200':
           description: Todo okay
@@ -53,32 +85,7 @@ paths:
         '400':
           description: Bad Request
 
-  '/courses/:id':
-    'delete':
-      tags:
-        - Course
-      description: Elimina curso existente
-      parameters:
-        - in: path
-          name: id
-          description: id del curso
-          required: true
-        - in: header
-          name: x-access-token
-          required: true
-          description: token recibido de usuario
-
-      responses:
-        '200':
-          description: Curso eliminado correctamente
-        '400':
-          description: Invalid user action
-        '401':
-          description: Token invalido
-        '403':
-          description: No token provisto
-        '404':
-          description: Curso no encontrado
+  '/courses/{id}/view':
     'get':
       tags:
         - Course
@@ -92,13 +99,6 @@ paths:
           name: x-access-token
           required: true
           description: token recibido de usuario
-      requestBody:
-        description: Body para obtener la informacion de un curso
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/getCourseInfo'
       responses:
         '200':
           description: Todo okay
@@ -109,35 +109,32 @@ paths:
         '404':
           description: Curso no existe
 
-  '/courses/add-collaborator/:id':
-    'post':
+  '/courses/{id}':
+    'delete':
       tags:
         - Course
-      description: Agrega un colaborador al curso
+      description: Elimina curso existente
       parameters:
         - in: path
           name: id
+          description: id del curso
           required: true
         - in: header
           name: x-access-token
           required: true
-          description: token recibido del creador del curso
-      requestBody:
-        description: Body para agregar un colaborador
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/courseAddCollaborator'
+          description: token recibido de usuario
       responses:
         '200':
-          description: Collaborator agregado correctamente
+          description: Curso eliminado correctamente
+        '400':
+          description: Invalid user action
         '401':
           description: Token invalido
         '403':
           description: No token provisto
         '404':
-          description: El collaborator no existe
+          description: Curso no encontrado
+
     'patch':
       tags:
         - Course
@@ -172,16 +169,38 @@ paths:
         '405':
           description: El usuario no es el creador del curso
 
-  '/courses/remove-collaborator/:id':
+  '/courses/collaborators':
     'post':
+      tags:
+        - Course
+      description: Agrega un colaborador al curso
+      parameters:
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido del creador del curso
+      requestBody:
+        description: Body para agregar un colaborador
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/courseAddCollaborator'
+      responses:
+        '200':
+          description: Collaborator agregado correctamente
+        '401':
+          description: Token invalido
+        '403':
+          description: No token provisto
+        '404':
+          description: El collaborator no existe
+
+    'delete':
       tags:
         - Course
       description: Quita a un colaborador del curso
       parameters:
-        - in: path
-          name: id
-          description: id del curso
-          required: true
         - in: header
           name: x-access-token
           required: true
@@ -203,32 +222,156 @@ paths:
         '404':
           description: El collaborator no existe
 
+  '/courses/subscription/{id}':
+    'post':
+      tags:
+        - Course
+      description: Agrega un suscriptor al curso
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido del creador del curso
+      responses:
+        '200':
+          description: Suscriptor agregado correctamente
+        '401':
+          description: Token invalido
+        '403':
+          description: No token provisto
+        '404':
+          description: El curso no existe
+
+    'delete':
+      tags:
+        - Course
+      description: Elimina a un suscriptor del curso
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido del creador del curso
+
+      responses:
+        '200':
+          description: Suscriptor eliminado correctamente
+        '401':
+          description: Token invalido
+        '403':
+          description: No token provisto
+        '404':
+          description: El curso no existe
+
+  '/courses/my_courses':
+    'get':
+      tags:
+        - Course
+      description: Obtiene los cursos que cree
+      parameters:
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido de usuario
+      responses:
+        '200':
+          description: Todo okay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/myCourses'
+        '204':
+          description: No content
+
+  '/courses/my_subscriptions':
+    'get':
+      tags:
+        - Course
+      description: Obtiene los cursos que cree
+      parameters:
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido de usuario
+      responses:
+        '200':
+          description: Todo okay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mySubscriptions'
+        '204':
+          description: No content
+
+  '/courses/users/{id}':
+    'get':
+      tags:
+        - Course
+      description: Obtiene los alumnos o colaboradores de un curso
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+        - in: query
+          name: first_name
+          example: 'Juan'
+        - in: query
+          name: last_name
+          example: 'Perez'
+        - in: query
+          name: subscribers
+          example: 'true'
+        - in: query
+          name: offset
+          example: 0
+        - in: query
+          name: limit
+          example: 100
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido de usuario
+      responses:
+        '200':
+          description: Todo okay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/userNames'
+        '204':
+          description: No content
+
 components:
   schemas:
     courseCreate:
       type: object
       required:
-        - course_name
-        - course_description
+        - name
+        - description
         - hashtags
-        - course_type
+        - type
         - amount_exams
         - subscription
         - location
       properties:
-        course_name:
+        name:
           type: string
           example: 'Mas Python que nunca'
-        course_description:
+        description:
           type: string
           example: 'Van a codear muchas cosas en python y van a ver que es alto lenguaje'
         hashtags:
           type: string
           example: '#Python, #Sarasa'
-        course_type:
+        type:
           type: string
           example: 'Programacion'
-        amount_exams:
+        exams:
           type: integer
           example: 3
         subscription:
@@ -241,10 +384,10 @@ components:
     coursesList:
       type: object
       properties:
-        course_name:
+        name:
           type: string
           example: 'Mas Python que nunca'
-        course_id:
+        id:
           type: integer
           example: 1
         creator_name:
@@ -253,45 +396,57 @@ components:
         subscription:
           type: string
           example: 'Premium'
+        location:
+          type: string
+          example: 'Obera'
+        hashtags:
+          type: string
+          example: '#FIUBA'
+        desciption:
+          type: string
+          example: 'descripcion del curso'
+        exams:
+          type: integer
+          example: 1
+        type:
+          type: string
+          example: 'Programacion'
+
 
     editCourse:
       type: object
       properties:
-        course_name:
+        name:
           type: string
           example: 'El regreso de Python'
-        course_description:
+        description:
           type: string
           example: 'Van a codear muchas cosas en python y van a ver que es alto lenguaje'
         hashtags:
           type: string
           example: '#Python, #Sarasa, #Fulano'
-
-    deleteCourse:
-      type: object
-      properties:
-        course_id:
-          type: integer
-          example: 1
-        user_id:
-          type: integer
-          example: 1
+        location:
+          type: string
+          example: 'Corrientes'
 
     courseInfo:
       properties:
-        course_name:
+        name:
           type: string
           example: 'Mas Python que nunca'
-        course_description:
+        creator_name:
+          type: string
+          example: 'Essaya'
+        description:
           type: string
           example: 'Van a codear muchas cosas en python y van a ver que es alto lenguaje'
         hashtags:
           type: string
-          example: '#Python, #Sarasa'
-        course_type:
+          example: 'Python, Sarasa'
+        type:
           type: string
           example: 'Programacion'
-        amount_exams:
+        exams:
           type: integer
           example: 3
         subscription:
@@ -307,19 +462,15 @@ components:
     courseAddCollaborator:
       type: object
       required:
-        - id_creator
-        - id_course
-        - collaborator_mail
+        - id
+        - collaborator_id
       properties:
-        id_creator:
+        id:
           type: integer
           example: 10
-        ic_course:
+        collaborator_id:
           type: integer
-          example: 1
-        collaborator_mail:
-          type: string
-          example: 'pepe@gmail.com'
+          example: 50
 
     courseRemoveCollaborator:
       type: object
@@ -328,25 +479,38 @@ components:
         - id_course
         - collaborator_mail
       properties:
-        id_creator:
-          type: integer
-          example: 10
-        id_course:
+        id:
           type: integer
           example: 1
-        collaborator_mail:
-          type: string
-          example: 'pepe@gmail.com'
+        user_to_remove:
+          type: integer
+          example: 50
 
     getCourseInfo:
       type: object
       required:
-        -id_course
-        -user_id
+        -id
       properties:
-        id_course:
+        id:
           type: integer
           example: 1
-        user_id:
-          type: integer
-          example: 1
+    myCourses:
+      type: object
+      properties:
+        myCourses:
+          type: array
+
+    mySubscriptions:
+      type: object
+      properties:
+        mySubscriptions:
+          type: array
+
+    userNames:
+      type: object
+      properties:
+        userNames:
+          type: array
+          items:
+            type: string
+          example: ['juan','pedro']

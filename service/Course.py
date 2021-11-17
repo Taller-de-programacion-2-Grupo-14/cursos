@@ -1,59 +1,204 @@
+from requests import HTTPError
 from exceptions.CourseException import *
+
+DEFAULT_OFFSET = 0
+DEFAULT_LIMIT = 10
 
 
 class CourseService:
-    def __init__(self, database):
+    def __init__(self, database, usersClient):
         self.db = database
+        self.userClient = usersClient
 
     def addCourse(self, courseInfo):
-        if courseInfo['course_name'] in self.db.getCoursesCreatedBy(courseInfo['user_id']):
-            raise CourseAlreadyExists(courseInfo['course_name'])
-        return self.db.addCourse(courseInfo)
+        courseNames = self._getCourseNames(
+            self.db.getCourses(
+                self._createDefaultFilter({"creator_id": courseInfo["user_id"]})
+            )
+        )
+        if courseInfo["name"] in courseNames:
+            raise CourseAlreadyExists(courseInfo["name"])
+        self.db.addCourse(courseInfo)
 
-    def getCourse(self, courseId):
+    def getCourse(self, courseId, userId):
+        self._raiseExceptionIfCourseDoesNotExists(courseId)
         course = self.db.getCourse(courseId)
-        if course is None:
-            raise CourseDoesNotExist
+        if course["cancelled"] and course["creator_id"] != userId:
+            return []
+        data = self.mapIdsToNames([course["creator_id"]])[0]
+        course["creator_first_name"] = data["first_name"]
+        course["creator_last_name"] = data["last_name"]
+        course["can_edit"] = userId == course["creator_id"]
         return course
 
-    def getCourses(self, courseFilters):
-        return self.db.getCourses(courseFilters)
+    def getCourses(self, userId, courseFilters):
+        courses = self.db.getCourses(courseFilters)
+        result = []
+        for course in courses:
+            data = self.mapIdsToNames([course["creator_id"]])[0]
+            course["creator_first_name"] = data["first_name"]
+            course["creator_last_name"] = data["last_name"]
+            course["can_edit"] = userId == course["creator_id"]
+            result.append(course)
+        return result
 
-    def deleteCourse(self, deleteCourse):
-        self._courseExists(deleteCourse)
-        self._isTheCourseCreator(deleteCourse)
+    def deleteCourse(self, courseId, user):
+        deleteCourse = user.dict()
+        deleteCourse["id"] = courseId
+        self._raiseExceptionIfCourseDoesNotExists(courseId)
+        self._raiseExceptionIfIsNotTheCourseCreator(deleteCourse)
         self.db.deleteCourse(deleteCourse)
 
-    def editCourseInfo(self, courseNewInfo):
-        self._courseExists(courseNewInfo)
-        self._isTheCourseCreator(courseNewInfo)
+    def editCourse(self, courseNewInfo):
+        self._raiseExceptionIfCourseDoesNotExists(courseNewInfo["id"])
+        self._raiseExceptionIfIsNotTheCourseCreator(courseNewInfo)
         self.db.editCourse(courseNewInfo)
 
     def addCollaborator(self, collaborator):
-        self._courseExists(collaborator)
-        if collaborator['user_id'] in self.db.getCourseCollaborators(collaborator['course_id']):
-            raise IsAlreadyACollaborator(self.db.getCourseName(collaborator['course_id']))
+        self._raiseExceptionIfCourseDoesNotExists(collaborator["id"])
+        if collaborator["user_id"] in self.db.getCourseCollaborators(
+            collaborator["id"]
+        ):
+            raise IsAlreadyACollaborator(self._getCourseName(collaborator["id"]))
         self.db.addCollaborator(collaborator)
 
     def removeCollaborator(self, removeCollaborator):
-        self._courseExists(removeCollaborator)
-        if removeCollaborator['user_to_remove'] not in \
-                self.db.getCourseCollaborators(removeCollaborator['course_id']):
-            raise IsNotACollaborator(self.db.getCourseName(removeCollaborator['course_id']))
-        if removeCollaborator['user_id'] == removeCollaborator['user_to_remove'] \
-                or self._isTheCourseCreator(removeCollaborator, raiseException=False):
+        self._raiseExceptionIfCourseDoesNotExists(removeCollaborator["id"])
+        if removeCollaborator["user_to_remove"] not in self.db.getCourseCollaborators(
+            removeCollaborator["id"]
+        ):
+            raise IsNotACollaborator(self._getCourseName(removeCollaborator["id"]))
+        if removeCollaborator["user_id"] == removeCollaborator[
+            "user_to_remove"
+        ] or self._isTheCourseCreator(removeCollaborator):
             self.db.removeCollaborator(removeCollaborator)
         else:
             raise InvalidUserAction
 
-    def _isTheCourseCreator(self, courseData, raiseException=True):
-        if courseData['user_id'] == self.db.getCourseCreator(courseData['course_id']):
-            return True
+    def addSubscriber(self, courseId, subscriberId):
+        self._raiseExceptionIfCourseDoesNotExists(courseId)
+        self._raiseExceptionIfSubscriptionInvalid(courseId, subscriberId)
+        # if subscriberId in self.db.getSubscribers(courseId):
+        #     raise IsAlreadySubscribed
+        self.db.addSubscriber(courseId, subscriberId)
 
-        if raiseException:
-            raise InvalidUserAction
-        return False
+    def removeSubscriber(self, courseId, subscriberId):
+        self._raiseExceptionIfCourseDoesNotExists(courseId)
+        # if subscriberId not in self.db.getSubscribers(courseId):
+        #     raise IsNotSubscribed
+        self.db.removeSubscriber(courseId, subscriberId)
 
-    def _courseExists(self, data):
-        if self.db.getCourse(data['course_id']) is None:
+    def getMySubscriptions(self, userId):
+        mySubscriptions = self.db.getMySubscriptions(userId)
+        result = []
+        for course in mySubscriptions:
+            data = self.mapIdsToNames([course["creator_id"]])[0]
+            course["creator_first_name"] = data["first_name"]
+            course["creator_last_name"] = data["last_name"]
+            result.append(course)
+        return result
+
+    def getUsers(self, courseId, userId, usersFilters):
+        self._raiseExceptionIfCourseDoesNotExists(courseId)
+        self._raiseExceptionIfIsNotTheCourseCreator({"id": courseId, "user_id": userId})
+        userIds = self._parseResult(self.db.getUsers(courseId, usersFilters))
+        result = []
+        for user in self.mapIdsToNames(userIds):
+            if (
+                "firstName" in usersFilters
+                and user["first_name"] == usersFilters["firstName"]
+            ):
+                if "lastName" not in usersFilters:
+                    result.append(user)
+                else:
+                    if user["last_name"] == usersFilters["lastName"]:
+                        result.append(user)
+            elif (
+                "lastName" in usersFilters
+                and user["last_name"] == usersFilters["lastName"]
+            ):
+                if "firstName" not in usersFilters:
+                    result.append(user)
+                else:
+                    if user["first_name"] == usersFilters["firstName"]:
+                        result.append(user)
+
+        return self.mapIdsToNames(userIds)
+
+    def getMyCourses(self, userId):
+        return self.db.getMyCourses(userId)
+
+    # Auxiliar Functions
+    def _getCourseNames(self, courses):
+        names = set()
+        for course in courses:
+            names.add(course["name"])
+        return names
+
+    def _raiseExceptionIfCourseDoesNotExists(self, courseId):
+        if self.db.getCourse(courseId) is None:
             raise CourseDoesNotExist
+
+    def _raiseExceptionIfSubscriptionInvalid(self, courseId, subscriberId):
+        courses = {"Basico": 1, "Estandar": 2, "Premium": 3}
+        users = {"free": 1, "platinum": 2, "black": 3}
+        data_course = self.db.getCourse(courseId)
+        course_subscription = str(data_course["subscription"])
+        data_user = self.mapIdsToNames([subscriberId])[0]
+        user_subscription = str(data_user["subscription"])
+        if users[user_subscription] < courses[course_subscription]:
+            raise SubscriptionInvalid
+
+    def _raiseExceptionIfIsNotTheCourseCreator(self, courseData):
+        if courseData["user_id"] != self.db.getCourse(courseData["id"])["creator_id"]:
+            raise InvalidUserAction
+
+    def _isTheCourseCreator(self, courseData):
+        return (
+            courseData["user_id"] == self.db.getCourse(courseData["id"])["creator_id"]
+        )
+
+    def _createDefaultFilter(self, filters):
+        filter = {}
+        for filterName, value in filters.items():
+            filter[filterName] = value
+        return {"filters": filter, "offset": DEFAULT_OFFSET, "limit": DEFAULT_LIMIT}
+
+    def _getCourseName(self, courseId):
+        return self.db.getCourse(courseId)["name"]
+
+    def mapIdsToNames(self, userIds):
+        info = self.getBatchUsers(userIds)
+        users = []
+        for user in info:
+            first_name = user.get("first_name", "")
+            last_name = user.get("last_name", "")
+            user_id = user.get("user_id", "")
+            subscription = user.get("subscription", "")
+            data = {
+                "first_name": first_name,
+                "last_name": last_name,
+                "user_id": user_id,
+                "subscription": subscription,
+            }
+            users.append(data)
+        return users
+
+    def getUser(self, userId):
+        try:
+            return self.userClient.getUser(userId)
+        except HTTPError as e:
+            print(f"exception while getting user f{e}")
+            raise UserNotFound()
+
+    def _parseResult(self, users):
+        result = []
+        for user in users:
+            if "id_student" in user:
+                result.append(user["id_student"])
+            else:
+                result.append(user["id_colaborator"])
+        return result
+
+    def getBatchUsers(self, ids: list):
+        return self.userClient.getBatchUsers(ids).get("users", [])
