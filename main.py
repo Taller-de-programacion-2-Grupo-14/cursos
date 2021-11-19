@@ -1,57 +1,105 @@
+import os
 from fastapi import FastAPI, Request, status, Depends
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from persistence.local import DB
+from external.users import Users
+from persistence.postgre import DB
 from service.Course import CourseService
 from controllers.Course import CourseController
 from schemas.Schemas import *
 from exceptions.CourseException import CourseException
 from queryParams.QueryParams import *
+from sqlalchemy import create_engine
+import yaml
 
+dbUrl = os.environ.get("DATABASE_URL")
+if not dbUrl.startswith("postgresql"):
+    dbUrl = dbUrl.replace("postgres", "postgresql", 1)
+print(f"url to connect is: {dbUrl}")
+engine = create_engine(dbUrl, echo=True, future=True)
 app = FastAPI()
-courseService = CourseService(DB())
+userSearcher = Users()
+courseService = CourseService(DB(engine), userSearcher)
 courseController = CourseController(courseService)
 
 
-@app.post('/courses/create')
+@app.post("/courses/create")
 def createCourse(createCourseData: CreateCourseSchema):
     return courseController.handleCreate(createCourseData.dict())
 
 
-@app.get('/courses/{course_id}')
-def getCourse(course_id: int):
-    return courseController.handleGet(course_id)
+@app.get("/courses/{courseId}/view")
+def getCourse(courseId: int, user: UserSchema):
+    return courseController.handleGet(courseId, user.user_id)
 
 
-@app.get('/courses')
-def getCourses(courseFilters: CourseQueryParams = Depends(CourseQueryParams)):
-    return courseController.handleGetCourses(courseFilters)
+@app.get("/courses")
+def getCourses(
+    user: UserSchema, courseFilters: CourseQueryParams = Depends(CourseQueryParams)
+):
+    return courseController.handleGetCourses(user.user_id, courseFilters.getFilters())
 
 
-@app.patch('/courses')
-def editCourse(courseNewInfo: EditCourseInfoSchema):
-    return courseController.handleEdit(courseNewInfo.dict())
+@app.patch("/courses/{courseId}")
+def editCourse(courseId: int, courseNewInfo: EditCourseInfoSchema):
+    courseNewInfo = courseNewInfo.dict()
+    courseNewInfo["id"] = courseId
+    return courseController.handleEdit(courseNewInfo)
 
 
-@app.delete('/courses')
-def deleteCourse(deleteCourseData: DeleteCourseSchema):
-    return courseController.handleDelete(deleteCourseData.dict())
+@app.delete("/courses/{courseId}")
+def deleteCourse(courseId: int, user: UserSchema):
+    return courseController.handleDelete(courseId, user)
 
 
-@app.post('/courses/collaborators')
+@app.post("/courses/collaborators")
 def addCollaborator(collaborator: CollaboratorSchema):
     return courseController.handleAddCollaborator(collaborator.dict())
 
 
-@app.delete('/courses/collaborators')
+@app.delete("/courses/collaborators")
 def removeCollaborator(collaborator: RemoveCollaboratorSchema):
     return courseController.handleRemoveCollaborator(collaborator.dict())
 
+
+@app.post("/courses/subscription/{courseId}")
+def addSubscriber(courseId: int, subscriber: UserSchema):
+    return courseController.handleAddSubscriber(courseId, subscriber.user_id)
+
+
+@app.delete("/courses/subscription/{courseId}")
+def removeSubscriber(courseId: int, subscriber: UserSchema):
+    return courseController.handleRemoveSubscriber(courseId, subscriber.user_id)
+
+
+@app.get("/courses/my_courses")
+def getMyCourses(user: UserSchema):
+    return courseController.handleGetMyCourses(user.user_id)
+
+
+@app.get("/courses/my_subscriptions")
+def getMySubscriptions(user: UserSchema):
+    return courseController.handleGetMySubscriptions(user.user_id)
+
+
+@app.get("/courses/users/{courseId}")
+def getCourseUsers(
+    courseId: int,
+    user: UserSchema,
+    usersFilters: UsersQueryParams = Depends(UsersQueryParams),
+):
+    return courseController.handleGetCourseUsers(
+        courseId, user.user_id, usersFilters.getFilters()
+    )
+
+
 @app.get("/doc-yml")
 def getSwagger():
-    with open("docs/swagger.yaml", "r") as swagger:
-        return swagger.readlines()
+    with open("docs/swagger.yaml") as f:
+        swagger = yaml.safe_load(f)
+        return swagger
+
 
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
@@ -67,14 +115,15 @@ def validationExceptionHandler(request: Request, exc: RequestValidationError):
     errors = exc.errors()
     fields = []
     for err in errors:
-        value = {'field': err.get('loc', ['invalid field'])[-1], 'message': err.get('msg', '')}
+        value = {
+            "field": err.get("loc", ["invalid field"])[-1],
+            "message": err.get("msg", ""),
+        }
         fields.append(value)
     finalStatus = status.HTTP_400_BAD_REQUEST
     return JSONResponse(
         status_code=finalStatus,
-        content=jsonable_encoder({
-            "errors": fields,
-            "status": finalStatus})
+        content=jsonable_encoder({"errors": fields, "status": finalStatus}),
     )
 
 
@@ -82,7 +131,7 @@ def validationExceptionHandler(request: Request, exc: RequestValidationError):
 def handle_course_exception(request: Request, exc: CourseException):
     return JSONResponse(
         status_code=exc.status_code,
-        content=jsonable_encoder({"message": exc.message, "status": exc.status_code})
+        content=jsonable_encoder({"message": exc.message, "status": exc.status_code}),
     )
 
 
@@ -91,8 +140,9 @@ def handleUnknownException(request: Request, exc: Exception):
     return JSONResponse(
         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         content=jsonable_encoder(
-            {"message": 'Neither God knows what happened...'
-                        'just kidding, the error was:' + type(exc).__name__,
-             "status": status.HTTP_503_SERVICE_UNAVAILABLE
-             })
+            {
+                "message": f"Unknown error: {type(exc).__name__} with message: {exc.args[0]}",
+                "status": status.HTTP_503_SERVICE_UNAVAILABLE,
+            }
+        ),
     )
