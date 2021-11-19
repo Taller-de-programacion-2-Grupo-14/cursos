@@ -34,7 +34,7 @@ def getCourse(courseId: int, user: UserSchema):
     return courseController.handleGet(courseId, user.user_id)
 
 
-@app.get("/courses")
+@app.get("/courses")  # ToDo:Es necesario tener el token?
 def getCourses(
     user: UserSchema, courseFilters: CourseQueryParams = Depends(CourseQueryParams)
 ):
