@@ -4,6 +4,9 @@ from models.courses import Courses
 from models.colaborators import Colaborators
 from models.enrolled import Enrolled
 
+DEFAULT_OFFSET = 0
+DEFAULT_LIMIT = 100
+
 
 class DB:
     def __init__(self, engine):
@@ -47,54 +50,22 @@ class DB:
             "location": course.location,
             "cancelled": course.cancelled,
         }
+        # return course._asdict()  Why not?
         return dic_course
 
     def getCourses(self, courseFilters):
-        offset = courseFilters["offset"]
-        limit = courseFilters["limit"]
-        where_clause = "WHERE cancelled = 0"
-        filters = courseFilters["filters"]
-        endings = f"OFFSET {offset} LIMIT {limit}"
-        if filters:
-            where_clause += " AND "
-            for k, v in filters.items():
-                if k == "offset" or k == "limit":
-                    pass
-                if k == "freeText":
-                    free_text = filters["freeText"]
-                    filter = f" (name LIKE '%{free_text}%' OR \
-                                    description LIKE '%{free_text}%') "
-                elif type(v) == int:
-                    filter = f"{k} = {v}"
-                else:
-                    filter = f"{k} LIKE '%{v}%'"
-                if where_clause != "WHERE cancelled = 0 AND ":
-                    where_clause += " AND "
-                where_clause += filter
-        query = f"SELECT * FROM courses {where_clause} {endings}"
-        result = self.session.execute(text(query))
-        courses = self.parse_result(result)
-        return courses
+        query = self._buildQuery("courses", filters=courseFilters)
+        return self._parseResult(self.session.execute(text(query)))
 
     def deleteCourse(self, deleteCourse):
-        id = deleteCourse["id"]
-        course = self.session.query(Courses).get(id)
-        course.cancelled = 1
+        query = self._buildQuery("courses", "UPDATE", ["cancelled = 1"], filters={"id": deleteCourse["id"]})
+        self.session.execute(text(query))
         self.session.commit()
 
     def editCourse(self, courseNewInfo):
-        id = courseNewInfo["id"]
-        course = self.session.query(Courses).get(id)
-        if "name" in courseNewInfo:
-            course.name = courseNewInfo["name"]
-        if "type" in courseNewInfo:
-            course.type = courseNewInfo["type"]
-        if "location" in courseNewInfo:
-            course.location = courseNewInfo["location"]
-        if "description" in courseNewInfo:
-            course.description = courseNewInfo["description"]
-        if "hashtags" in courseNewInfo:
-            course.hashtags = courseNewInfo["hashtags"]
+        columns = [f"{column} = {newValue}" for column, newValue in courseNewInfo.items() if column != "id"]
+        query = self._buildQuery("courses", "UPDATE", columns, filters={"id": courseNewInfo["id"]})
+        self.session.execute(text(query))
         self.session.commit()
 
     def addCollaborator(self, collaborator):
@@ -111,16 +82,11 @@ class DB:
         self.session.delete(colab)
         self.session.commit()
 
-    def getCourseCollaborators(self, courseId):
-        colabs_course = self.session.query(Colaborators).filter(
-            Colaborators.id_course == courseId
-        )
-        colaborators = []
-        if not colabs_course.first():
-            return colaborators
-        for c in colabs_course:
-            colaborators.append(c.id_colaborator)
-        return colaborators
+    def getCourseUsers(self, courseId, getSubscribers=True):
+        table = "enrolled" if getSubscribers else "colaborators"
+        column = "id_student" if getSubscribers else "id_colaborator"
+        query = self._buildQuery(table, columns=[column], filters={"id_course": courseId})
+        return {record.id_colaborator for record in self.session.execute(text(query))}
 
     def addSubscriber(self, id_course, subscriber_id):
         enrollment = Enrolled(
@@ -130,41 +96,69 @@ class DB:
         self.session.commit()
 
     def removeSubscriber(self, courseId, subscriberId):
-        query = f"DELETE FROM enrolled WHERE id_course = {courseId} \
-                AND id_student = {subscriberId};"
+        filters = {"id_course": courseId, "id_student": subscriberId}
+        query = self._buildQuery("enrolled", "DELETE", filters=filters)
         self.session.execute(text(query))
         self.session.commit()
-
-    def parse_result(self, result):
-        courses = []
-        if not result:
-            return courses
-        for r in result:
-            courses.append(r._asdict())
-        return courses
 
     def getMySubscriptions(self, user_id):
         query = f"SELECT * FROM (SELECT id_course AS courseId FROM enrolled WHERE id_student \
                 = {user_id}) as studentCourses JOIN courses AS c ON c.id \
                 = studentCourses.courseId"
-        result = self.session.execute(text(query))
-        subscriptions = self.parse_result(result)
-        return subscriptions
+        return self._parseResult(self.session.execute(text(query)))
 
     def getUsers(self, courseId, userFilters):
-        getSubscribers = userFilters["filters"]["subscribers"]
+        getSubscribers = userFilters["subscribers"]
         table = "enrolled" if getSubscribers else "colaborators"
-        userId = "id_student" if getSubscribers else "id_colaborator"
-        offset = userFilters["offset"]
-        limit = userFilters["limit"]
-        query = f"SELECT {userId} FROM {table} WHERE id_course = {courseId} \
-                OFFSET {offset} LIMIT {limit}"
-        result = self.session.execute(text(query))
-        courses = self.parse_result(result)
-        return courses
+        column = "id_student" if getSubscribers else "id_colaborator"
+        filters = {"id_course": courseId, "offset": userFilters.get("offset", DEFAULT_OFFSET), "limit": userFilters.get("limit", DEFAULT_LIMIT)}
+        query = self._buildQuery(table, columns=[column], filters=filters)
+        self._parseResult(self.session.execute(text(query)))
+        return self._parseResult(self.session.execute(text(query)))
 
     def getMyCourses(self, userId):
-        query = f"SELECT * FROM courses WHERE creator_id = {userId}"
-        result = self.session.execute(text(query))
-        courses = self.parse_result(result)
+        query = self._buildQuery("courses", filters={"creator_id": userId})
+        return self._parseResult(self.session.execute(text(query)))
+
+    def _buildQuery(self, tableName, operation="SELECT", columns=None, filters=None):
+        operation = operation.upper()
+        if columns is None:
+            columns = ["*"]
+        filtersQuery = ("WHERE " + self._buildFilterQuery(filters)) if filters is not None else ""
+        if operation == "SELECT":
+            return f"{operation} {', '.join(columns)} FROM {tableName} {filtersQuery}"
+        if operation == "DELETE":
+            return f"{operation} FROM {tableName} {filtersQuery}"
+        if operation == "UPDATE":
+            #ToDo: Agregar algo para que valide si el formato es el correcto (col = value)
+            return f"{operation} {tableName} SET {', '.join(columns)} {filtersQuery}"
+        if operation == "INSERT":
+            return f"{operation} INTO {tableName} VALUES({', '.join(columns)}"
+
+
+    def _buildFilterQuery(self, filters):
+        filterQuery = ""
+        for filterName, value in filters.items():
+            if filterName == "OFFSET" or filterName == "LIMIT":
+                continue  # A dict does not have an order, this instructions must be at the end of the query
+            if filterQuery:
+                filterQuery += " AND "
+            if filterName == "free_text":
+                filterQuery += f"name LIKE '%{value}%' OR description LIKE '%{value}%'"
+            elif type(value) == str:
+                filterQuery += f"{filterName} LIKE '%{value}%'"
+            else:
+                filterQuery += f"{filterName} = {value}"
+        if "offset" in filters:
+            filterQuery += f"OFFSET {filters['OFFSET']}"
+        if "limit" in filters:
+            filterQuery += f"LIMIT {filters['LIMIT']}"
+        return filterQuery
+
+    def _parseResult(self, result):
+        courses = []
+        if not result:
+            return courses
+        for r in result:
+            courses.append(r._asdict())
         return courses
