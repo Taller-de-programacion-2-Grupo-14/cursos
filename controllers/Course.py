@@ -53,6 +53,7 @@ class CourseController:
         #     "offset": DEFAULT_OFFSET,
         #     "limit": DEFAULT_LIMIT,
         # }
+        # Ver la forma de que aca le digas que queres los cancelados y no cancelados
         myCourses = self.service.getMyCourses(userId)
         return {"message": myCourses, "status": self._getCorrectStatus(myCourses)}
 

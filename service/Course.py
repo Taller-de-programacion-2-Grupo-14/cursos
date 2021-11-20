@@ -1,29 +1,28 @@
 from requests import HTTPError
 from exceptions.CourseException import *
+from external.users import Users
+from persistence.postgre import DB
+from validator.CourseValidator import CourseValidator
 
 DEFAULT_OFFSET = 0
 DEFAULT_LIMIT = 10
 
 
 class CourseService:
-    def __init__(self, database, usersClient):
+    def __init__(self, database: DB, usersClient: Users):
         self.db = database
         self.userClient = usersClient
+        self.courseValidator = CourseValidator(database)
 
     def addCourse(self, courseInfo):
-        courseNames = self._getCourseNames(
-            self.db.getCourses(
-                self._createDefaultFilter({"creator_id": courseInfo["user_id"]})
-            )
-        )
-        if courseInfo["name"] in courseNames:
+        if self.courseValidator.hasACourseWithTheSameName(courseInfo["name"], courseInfo["creator_id"]):
             raise CourseAlreadyExists(courseInfo["name"])
         self.db.addCourse(courseInfo)
 
     def getCourse(self, courseId, userId):
-        self._raiseExceptionIfCourseDoesNotExists(courseId)
-        course = self.db.getCourse(courseId)
-        if course["cancelled"] and course["creator_id"] != userId:
+        self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId) # esto volaria
+        course = self.db.getCourse(courseId) #harias esto directamente
+        if self.courseValidator.canViewCourse(course, userId):
             return []
         data = self.mapIdsToNames([course["creator_id"]])[0]
         course["creator_first_name"] = data["first_name"]
@@ -89,6 +88,7 @@ class CourseService:
         self.db.removeSubscriber(courseId, subscriberId)
 
     def getMySubscriptions(self, userId):
+        #Aca tenes que hacer join con otra tabla no es tan directo
         mySubscriptions = self.db.getMySubscriptions(userId)
         result = []
         for course in mySubscriptions:
@@ -126,6 +126,8 @@ class CourseService:
         return self.mapIdsToNames(userIds)
 
     def getMyCourses(self, userId):
+        # Este si queda al pedo, es un getCourses con el siguiente filtro
+        # {creator_id: userId, offset, limit}
         return self.db.getMyCourses(userId)
 
     # Auxiliar Functions
