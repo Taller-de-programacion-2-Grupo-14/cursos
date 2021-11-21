@@ -1,8 +1,8 @@
 from persistence.postgre import DB
 from exceptions.CourseException import *
 
-COURSE_SUBSC = {"basico": 1, "estandar": 2, "premium": 3}
-USER_SUBS = {"free": 1, "platinum": 2, "black": 3}
+COURSE_SUBSCRIPTION = {"basico": 1, "estandar": 2, "premium": 3}
+USER_SUBSCRIPTION = {"free": 1, "platinum": 2, "black": 3}
 
 
 class CourseValidator:
@@ -10,8 +10,7 @@ class CourseValidator:
         self.db = database
 
     def hasACourseWithTheSameName(self, courseName, creatorId):
-        filter = {"filters": {"creator_id": creatorId}}
-        for course in self.db.getCourses(filter):
+        for course in self.db.getCourses({"creator_id": creatorId}):
             if course.get("name", "") == courseName:
                 return True
         return False
@@ -19,56 +18,51 @@ class CourseValidator:
     def courseExists(self, courseId: int):
         return self.db.getCourse(courseId) is not None
 
-    def isTheCourseCreator(self, courseData: dict):
-        return (
-            courseData["user_id"] == self.db.getCourse(courseData["id"])["creator_id"]
-        )
+    def isTheCourseCreator(self, courseId: int, userId: int):
+        return userId == self.db.getCourse(courseId)["creator_id"]
 
     def isACollaborator(self, courseId: int, collaboratorId: int):
-        filter = {"getSubscribers": False}
+        filter = {"subscribers": False}
         return collaboratorId in self.db.getUsers(courseId, filter)
 
     def isSubscribed(self, courseId: int, subscriberId: int):
-        filter = {"getSubscribers": True}
+        filter = {"subscribers": True}
         return subscriberId in self.db.getUsers(courseId, filter)
 
-    def canSubscribe(self, courseId: int, userInfo: dict):
-        return self._canCollaborateOrSubscribe(courseId, userInfo)
+    def canSubscribe(self, courseId: int, userData: dict):
+        courseData = self.db.getCourse(courseId)
+        self.raiseExceptionIfUserIsBlocked(userData)
+        if self.isSubscribed(courseId, userData["id"]):
+            raise IsAlreadySubscribed
+        if courseData["creator_id"] == userData["id"]:
+            raise InvalidUserAction
+        if not self.hasCorrectSubscriptionType(courseData["subscription"], userData["subscription"]):
+            raise SubscriptionInvalid
+        return True
 
-    def canCollaborate(self, courseId: int, userInfo: dict):
-        return self._canCollaborateOrSubscribe(courseId, userInfo, getSubscribers=False)
+    def canCollaborate(self, courseId: int, userData: dict):
+        self.raiseExceptionIfUserIsBlocked(userData)
+        if self.isACollaborator(courseId, userData["id"]):
+            raise IsAlreadyACollaborator
+        return True
 
-    def isCancelled(self, courseInfo: dict):
-        return courseInfo.get("cancelled", 0)
+    def isCancelled(self, courseData: dict):
+        return courseData.get("cancelled", 0)
+
+    def hasCorrectSubscriptionType(self, courseSubscription: str, userSubscription: str):
+        return USER_SUBSCRIPTION.get(userSubscription.lower(), -1) >= COURSE_SUBSCRIPTION.get(courseSubscription.lower(), -1)
+
+    def canViewCourse(self, courseData, userId):
+        return not(courseData["cancelled"] and courseData["creator_id"] != userId)
 
     def raiseExceptionIfCourseDoesNotExists(self, courseId: int):
         if not self.courseExists(courseId):
             raise CourseDoesNotExist
 
-    def raiseExceptionIfIsNotTheCourseCreator(self, courseData: dict):
-        if not self.isTheCourseCreator(courseData):
+    def raiseExceptionIfIsNotTheCourseCreator(self, courseId: int, userId: int):
+        if not self.isTheCourseCreator(courseId, userId):
             raise InvalidUserAction
 
-    def _validateSubscription(self, userSubscription: str, courseSubscription: str):
-        return (
-            USER_SUBS[userSubscription.lower()]
-            < COURSE_SUBSC[courseSubscription.lower()]
-        )
-
-    def canViewCourse(self, courseInfo, userId):
-        return not(courseInfo["cancelled"] and courseInfo["creator_id"] != userId)
-
-    def _canCollaborateOrSubscribe(self, courseId, userInfo: dict, getSubscribers=True):
-        courseInfo = self.db.getCourse(courseId)
-        if courseInfo is None:
-            raise CourseDoesNotExist
-        filter = {"subscribers": getSubscribers}
-        return not(
-            userInfo.get("blocked", True)
-            or self._validateSubscription(
-                userInfo.get("subscription"), courseInfo["subscription"]
-            )
-            or userInfo["id"] in self.db.getUsers(courseId, filter)
-            or courseInfo["creator_id"] != userInfo["id"]
-        )
-
+    def raiseExceptionIfUserIsBlocked(self, userData):
+        if userData.get("blocked", False):
+            raise UserBlocked
