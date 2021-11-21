@@ -35,7 +35,7 @@ def getCourse(courseId: int, user: UserSchema):
     return courseController.handleGet(courseId, user.user_id)
 
 
-@app.get("/courses")  # ToDo:Es necesario tener el token?
+@app.get("/courses")
 def getCourses(
     user: UserSchema, courseFilters: CourseQueryParams = Depends(CourseQueryParams)
 ):
@@ -147,6 +147,7 @@ def handleUnknownException(request: Request, exc: Exception):
             }
         ),
     )
+
 
 if __name__ == "__main__":
     uvicorn.run(app, port=8080)

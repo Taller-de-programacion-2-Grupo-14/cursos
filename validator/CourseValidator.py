@@ -32,28 +32,34 @@ class CourseValidator:
     def canSubscribe(self, courseId: int, userData: dict):
         courseData = self.db.getCourse(courseId)
         self.raiseExceptionIfUserIsBlocked(userData)
-        if self.isSubscribed(courseId, userData["id"]):
+        if self.isSubscribed(courseId, userData["user_id"]):
             raise IsAlreadySubscribed
-        if courseData["creator_id"] == userData["id"]:
+        if courseData["creator_id"] == userData["user_id"]:
             raise InvalidUserAction
-        if not self.hasCorrectSubscriptionType(courseData["subscription"], userData["subscription"]):
+        if not self.hasCorrectSubscriptionType(
+            courseData["subscription"], userData["subscription"]
+        ):
             raise SubscriptionInvalid
         return True
 
     def canCollaborate(self, courseId: int, userData: dict):
         self.raiseExceptionIfUserIsBlocked(userData)
-        if self.isACollaborator(courseId, userData["id"]):
+        if self.isACollaborator(courseId, userData["user_id"]):
             raise IsAlreadyACollaborator
         return True
 
     def isCancelled(self, courseData: dict):
         return courseData.get("cancelled", 0)
 
-    def hasCorrectSubscriptionType(self, courseSubscription: str, userSubscription: str):
-        return USER_SUBSCRIPTION.get(userSubscription.lower(), -1) >= COURSE_SUBSCRIPTION.get(courseSubscription.lower(), -1)
+    def hasCorrectSubscriptionType(
+        self, courseSubscription: str, userSubscription: str
+    ):
+        return USER_SUBSCRIPTION.get(
+            userSubscription.lower(), -1
+        ) >= COURSE_SUBSCRIPTION.get(courseSubscription.lower(), -1)
 
     def canViewCourse(self, courseData, userId):
-        return not(courseData["cancelled"] and courseData["creator_id"] != userId)
+        return not (courseData["cancelled"] and courseData["creator_id"] != userId)
 
     def raiseExceptionIfCourseDoesNotExists(self, courseId: int):
         if not self.courseExists(courseId):
@@ -64,5 +70,5 @@ class CourseValidator:
             raise InvalidUserAction
 
     def raiseExceptionIfUserIsBlocked(self, userData):
-        if userData.get("blocked", False):
+        if userData.get("is_blocked", False):
             raise UserBlocked
