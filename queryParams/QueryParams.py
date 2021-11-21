@@ -2,19 +2,14 @@ from fastapi import Query
 from typing import Optional
 
 
-def getFilters(filtersDic, offset, limit):
+def getFilters(filtersDic):
     filters = {}
     for filterName, value in filtersDic.items():
         if value is not None:
             filters[filterName] = value
-    return {
-        "filters": filters if len(filters) else None,
-        "offset": offset,
-        "limit": limit,
-    }
+    return filters
 
 
-# ToDo: Fix regex below, i dont remember the type of subscriptions
 class CourseQueryParams:
     def __init__(
         self,
@@ -39,13 +34,13 @@ class CourseQueryParams:
             "exams": exams,
             "subscription": subscription,
             "location": location,
-            "freeText": free_text,
+            "free_text": free_text,
+            "offset": offset,
+            "limit": limit,
         }
-        self.offset = offset
-        self.limit = limit
 
     def getFilters(self):
-        return getFilters(self.filters, self.offset, self.limit)
+        return getFilters(self.filters)
 
 
 class UsersQueryParams:
@@ -64,9 +59,9 @@ class UsersQueryParams:
             "firstName": first_name,
             "lastName": last_name,
             "subscribers": subscribers,
+            "offset": offset,
+            "limit": limit,
         }
-        self.offset = offset
-        self.limit = limit
 
     def getFilters(self):
-        return getFilters(self.filters, self.offset, self.limit)
+        return getFilters(self.filters)

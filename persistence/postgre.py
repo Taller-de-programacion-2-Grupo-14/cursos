@@ -5,7 +5,7 @@ from models.colaborators import Colaborators
 from models.enrolled import Enrolled
 
 DEFAULT_OFFSET = 0
-DEFAULT_LIMIT = 100
+DEFAULT_LIMIT = 500
 
 
 class DB:
@@ -39,26 +39,14 @@ class DB:
         course = self.session.query(Courses).get(courseId)
         if not course:
             return None
-        dic_course = {
-            "name": course.name,
-            "exams": course.exams,
-            "creator_id": course.creator_id,
-            "type": course.type,
-            "subscription": course.subscription,
-            "description": course.description,
-            "hashtags": course.hashtags,
-            "location": course.location,
-            "cancelled": course.cancelled,
-        }
-        # return course._asdict()  Why not?
-        return dic_course
+        return course._asdict()
 
     def getCourses(self, courseFilters):
         query = self._buildQuery("courses", filters=courseFilters)
         return self._parseResult(self.session.execute(text(query)))
 
-    def deleteCourse(self, deleteCourse):
-        query = self._buildQuery("courses", "UPDATE", ["cancelled = 1"], filters={"id": deleteCourse["id"]})
+    def deleteCourse(self, courseId):
+        query = self._buildQuery("courses", "UPDATE", ["cancelled = 1"], filters={"id": courseId})
         self.session.execute(text(query))
         self.session.commit()
 
@@ -114,45 +102,43 @@ class DB:
         filters = {"id_course": courseId, "offset": userFilters.get("offset", DEFAULT_OFFSET), "limit": userFilters.get("limit", DEFAULT_LIMIT)}
         query = self._buildQuery(table, columns=[column], filters=filters)
         self._parseResult(self.session.execute(text(query)))
-        return self._parseResult(self.session.execute(text(query)))
+        return self._parseResult(self.session.execute(text(query)))  # ToDo: creo que no hay que parsear
 
     def getMyCourses(self, userId):
-        query = self._buildQuery("courses", filters={"creator_id": userId})
-        return self._parseResult(self.session.execute(text(query)))
+        return self.getCourses({"creator_id": userId})
 
     def _buildQuery(self, tableName, operation="SELECT", columns=None, filters=None):
         operation = operation.upper()
         if columns is None:
             columns = ["*"]
-        filtersQuery = ("WHERE " + self._buildFilterQuery(filters)) if filters is not None else ""
+        filtersQuery = self._buildFilterQuery(filters) if filters is not None else ""
         if operation == "SELECT":
             return f"{operation} {', '.join(columns)} FROM {tableName} {filtersQuery}"
         if operation == "DELETE":
             return f"{operation} FROM {tableName} {filtersQuery}"
         if operation == "UPDATE":
-            #ToDo: Agregar algo para que valide si el formato es el correcto (col = value)
+            # ToDo: Agregar algo para que valide si el formato es el correcto (col = value)
             return f"{operation} {tableName} SET {', '.join(columns)} {filtersQuery}"
         if operation == "INSERT":
-            return f"{operation} INTO {tableName} VALUES({', '.join(columns)}"
+            return f"{operation} INTO {tableName} VALUES({', '.join(columns)})"
 
 
     def _buildFilterQuery(self, filters):
         filterQuery = ""
         for filterName, value in filters.items():
-            if filterName == "OFFSET" or filterName == "LIMIT":
+            if filterName.lower() == "offset" or filterName.lower() == "limit":
                 continue  # A dict does not have an order, this instructions must be at the end of the query
             if filterQuery:
                 filterQuery += " AND "
+            else:
+                filterQuery += "WHERE "
             if filterName == "free_text":
-                filterQuery += f"name LIKE '%{value}%' OR description LIKE '%{value}%'"
-            elif type(value) == str:
+                filterQuery += f"(name LIKE '%{value}%' OR description LIKE '%{value}%')"
+            elif filterName in {"name", "type", "location"}:
                 filterQuery += f"{filterName} LIKE '%{value}%'"
             else:
                 filterQuery += f"{filterName} = {value}"
-        if "offset" in filters:
-            filterQuery += f"OFFSET {filters['OFFSET']}"
-        if "limit" in filters:
-            filterQuery += f"LIMIT {filters['LIMIT']}"
+        filterQuery += f"OFFSET {filters.get('offset', DEFAULT_OFFSET)} LIMIT {filters.get('limit', DEFAULT_LIMIT)}"
         return filterQuery
 
     def _parseResult(self, result):
