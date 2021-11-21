@@ -20,8 +20,8 @@ class CourseController:
         courses = self.service.getCourses(userId, courseFilters)
         return {"message": courses, "status": self._getCorrectStatus(courses)}
 
-    def handleDelete(self, courseId, user):
-        self.service.deleteCourse(courseId, user)
+    def handleDelete(self, courseId, userId):
+        self.service.deleteCourse(courseId, userId)
         return {"message": "Course deleted correctly", "status": status.HTTP_200_OK}
 
     def handleEdit(self, courseNewInfo):
@@ -48,12 +48,6 @@ class CourseController:
         return {"message": "Successful unsubscription", "status": status.HTTP_200_OK}
 
     def handleGetMyCourses(self, userId):
-        # filter = {
-        #     "filters": {"creator_id": userId},
-        #     "offset": DEFAULT_OFFSET,
-        #     "limit": DEFAULT_LIMIT,
-        # }
-        # Ver la forma de que aca le digas que queres los cancelados y no cancelados
         myCourses = self.service.getMyCourses(userId)
         return {"message": myCourses, "status": self._getCorrectStatus(myCourses)}
 

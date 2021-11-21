@@ -5,7 +5,7 @@ networks:
 services:
   db:
     image: postgres:14
-    container_name: pg
+    container_name: pg_courses
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres

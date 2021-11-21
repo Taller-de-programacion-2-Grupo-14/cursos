@@ -1,4 +1,5 @@
 import os
+import uvicorn
 from fastapi import FastAPI, Request, status, Depends
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -50,7 +51,7 @@ def editCourse(courseId: int, courseNewInfo: EditCourseInfoSchema):
 
 @app.delete("/courses/{courseId}")
 def deleteCourse(courseId: int, user: UserSchema):
-    return courseController.handleDelete(courseId, user)
+    return courseController.handleDelete(courseId, user.user_id)
 
 
 @app.post("/courses/collaborators")
@@ -146,3 +147,6 @@ def handleUnknownException(request: Request, exc: Exception):
             }
         ),
     )
+
+if __name__ == "__main__":
+    uvicorn.run(app, port=8080)

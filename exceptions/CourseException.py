@@ -63,5 +63,13 @@ class SubscriptionInvalid(CourseException):
     def __init__(self):
         super().__init__(
             status.HTTP_403_FORBIDDEN,
-            "You should upgrade your membership to enrole this course",
+            "You should upgrade your membership to enroll this course",
+        )
+
+
+class UserBlocked(CourseException):
+    def __init__(self):
+        super().__init__(
+            status.HTTP_401_UNAUTHORIZED,
+            "Your account is blocked",
         )
