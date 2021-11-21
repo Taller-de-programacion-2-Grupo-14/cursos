@@ -3,6 +3,7 @@ from sqlalchemy import text
 from models.courses import Courses
 from models.colaborators import Colaborators
 from models.enrolled import Enrolled
+import re
 
 DEFAULT_OFFSET = 0
 DEFAULT_LIMIT = 500
@@ -36,23 +37,34 @@ class DB:
         self.session.commit()
 
     def getCourse(self, courseId):
-        course = self.session.query(Courses).get(courseId)
+        query = self._buildQuery("courses", filters={"id": courseId})
+        course = self._parseResult(
+            self.session.execute(text(query))
+        )  # In this way we get an array of dicts
         if not course:
             return None
-        return course._asdict()
+        return course[0]
 
     def getCourses(self, courseFilters):
         query = self._buildQuery("courses", filters=courseFilters)
         return self._parseResult(self.session.execute(text(query)))
 
     def deleteCourse(self, courseId):
-        query = self._buildQuery("courses", "UPDATE", ["cancelled = 1"], filters={"id": courseId})
+        query = self._buildQuery(
+            "courses", "UPDATE", ["cancelled = 1"], filters={"id": courseId}
+        )
         self.session.execute(text(query))
         self.session.commit()
 
     def editCourse(self, courseNewInfo):
-        columns = [f"{column} = {newValue}" for column, newValue in courseNewInfo.items() if column != "id"]
-        query = self._buildQuery("courses", "UPDATE", columns, filters={"id": courseNewInfo["id"]})
+        columns = [
+            f"{column} = {newValue}"
+            for column, newValue in courseNewInfo.items()
+            if column != "id"
+        ]
+        query = self._buildQuery(
+            "courses", "UPDATE", columns, filters={"id": courseNewInfo["id"]}
+        )
         self.session.execute(text(query))
         self.session.commit()
 
@@ -73,7 +85,9 @@ class DB:
     def getCourseUsers(self, courseId, getSubscribers=True):
         table = "enrolled" if getSubscribers else "colaborators"
         column = "id_student" if getSubscribers else "id_colaborator"
-        query = self._buildQuery(table, columns=[column], filters={"id_course": courseId})
+        query = self._buildQuery(
+            table, columns=[column], filters={"id_course": courseId}
+        )
         return {record.id_colaborator for record in self.session.execute(text(query))}
 
     def addSubscriber(self, id_course, subscriber_id):
@@ -99,13 +113,16 @@ class DB:
         getSubscribers = userFilters["subscribers"]
         table = "enrolled" if getSubscribers else "colaborators"
         column = "id_student" if getSubscribers else "id_colaborator"
-        filters = {"id_course": courseId, "offset": userFilters.get("offset", DEFAULT_OFFSET), "limit": userFilters.get("limit", DEFAULT_LIMIT)}
+        filters = {
+            "id_course": courseId,
+            "offset": userFilters.get("offset", DEFAULT_OFFSET),
+            "limit": userFilters.get("limit", DEFAULT_LIMIT),
+        }
         query = self._buildQuery(table, columns=[column], filters=filters)
         self._parseResult(self.session.execute(text(query)))
-        return self._parseResult(self.session.execute(text(query)))  # ToDo: creo que no hay que parsear
-
-    def getMyCourses(self, userId):
-        return self.getCourses({"creator_id": userId})
+        return self._parseResult(
+            self.session.execute(text(query))
+        )  # ToDo: creo que no hay que parsear
 
     def _buildQuery(self, tableName, operation="SELECT", columns=None, filters=None):
         operation = operation.upper()
@@ -118,27 +135,33 @@ class DB:
             return f"{operation} FROM {tableName} {filtersQuery}"
         if operation == "UPDATE":
             # ToDo: Agregar algo para que valide si el formato es el correcto (col = value)
+            filtersQuery = re.sub(r"(.*)OFFSET.*", r"\1", filtersQuery)
             return f"{operation} {tableName} SET {', '.join(columns)} {filtersQuery}"
         if operation == "INSERT":
             return f"{operation} INTO {tableName} VALUES({', '.join(columns)})"
-
 
     def _buildFilterQuery(self, filters):
         filterQuery = ""
         for filterName, value in filters.items():
             if filterName.lower() == "offset" or filterName.lower() == "limit":
-                continue  # A dict does not have an order, this instructions must be at the end of the query
+                # A dict does not have an order, this instructions must be at the end of the query
+                continue
             if filterQuery:
                 filterQuery += " AND "
             else:
                 filterQuery += "WHERE "
             if filterName == "free_text":
-                filterQuery += f"(name LIKE '%{value}%' OR description LIKE '%{value}%')"
-            elif filterName in {"name", "type", "location"}:
+                filterQuery += (
+                    f"(name LIKE '%{value}%' OR description LIKE '%{value}%')"
+                )
+            elif filterName in {"name", "type", "location", "subscription"}:
                 filterQuery += f"{filterName} LIKE '%{value}%'"
             else:
                 filterQuery += f"{filterName} = {value}"
-        filterQuery += f"OFFSET {filters.get('offset', DEFAULT_OFFSET)} LIMIT {filters.get('limit', DEFAULT_LIMIT)}"
+        filterQuery += (
+            f" OFFSET {filters.get('offset', DEFAULT_OFFSET)} "
+            f"LIMIT {filters.get('limit', DEFAULT_LIMIT)}"
+        )
         return filterQuery
 
     def _parseResult(self, result):

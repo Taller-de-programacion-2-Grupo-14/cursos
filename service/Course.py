@@ -17,7 +17,9 @@ class CourseService:
         self.courseValidator = CourseValidator(database)
 
     def addCourse(self, courseInfo):
-        if self.courseValidator.hasACourseWithTheSameName(courseInfo["name"], courseInfo["creator_id"]):
+        if self.courseValidator.hasACourseWithTheSameName(
+            courseInfo["name"], courseInfo["user_id"]
+        ):
             raise CourseAlreadyExists(courseInfo["name"])
         self.db.addCourse(courseInfo)
 
@@ -36,7 +38,7 @@ class CourseService:
         result = []
         creatorsData = self._getCreatorsData(courses)
         for course in courses:
-            creatorData = creatorsData["creator_id"]
+            creatorData = creatorsData[course["creator_id"]]
             self._addExtraData(course, creatorData, userId)
             result.append(course)
         return result
@@ -48,9 +50,15 @@ class CourseService:
 
     def editCourse(self, courseNewInfo):
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseNewInfo["id"])
-        self.courseValidator.raiseExceptionIfIsNotTheCourseCreator(courseNewInfo["id"], courseNewInfo["user_id"])
+        self.courseValidator.raiseExceptionIfIsNotTheCourseCreator(
+            courseNewInfo["id"], courseNewInfo["user_id"]
+        )
         actualCourseName = self._getCourseName(courseNewInfo["id"])
-        if actualCourseName != courseNewInfo["name"] and self.courseValidator.hasACourseWithTheSameName(courseNewInfo["name"], courseNewInfo["user_id"]):
+        if actualCourseName != courseNewInfo[
+            "name"
+        ] and self.courseValidator.hasACourseWithTheSameName(
+            courseNewInfo["name"], courseNewInfo["user_id"]
+        ):
             raise CourseAlreadyExists
         self.db.editCourse(courseNewInfo)
 
@@ -61,14 +69,20 @@ class CourseService:
             self.db.addCollaborator(collaborator)
 
     def removeCollaborator(self, removeCollaborator):
-        self.courseValidator.raiseExceptionIfCourseDoesNotExists(removeCollaborator["id"])
+        self.courseValidator.raiseExceptionIfCourseDoesNotExists(
+            removeCollaborator["id"]
+        )
         userData = self.getUserData(removeCollaborator["user_id"])
         self.courseValidator.raiseExceptionIfUserIsBlocked(userData)
-        if not self.courseValidator.isACollaborator(removeCollaborator["id"], removeCollaborator["user_to_remove"]):
+        if not self.courseValidator.isACollaborator(
+            removeCollaborator["id"], removeCollaborator["user_to_remove"]
+        ):
             raise IsNotACollaborator(self._getCourseName(removeCollaborator["id"]))
         if removeCollaborator["user_id"] == removeCollaborator[
             "user_to_remove"
-        ] or self.courseValidator.isTheCourseCreator(removeCollaborator["id"], removeCollaborator["user_id"]):
+        ] or self.courseValidator.isTheCourseCreator(
+            removeCollaborator["id"], removeCollaborator["user_id"]
+        ):
             self.db.removeCollaborator(removeCollaborator)
         else:
             raise InvalidUserAction
@@ -104,27 +118,37 @@ class CourseService:
         usersData = self.getUsersData(userIds)
         result = []
         for user in usersData:
-            if usersFilters.get("first_name", "") and usersFilters["first_name"] != user["first_name"]:
+            if (
+                usersFilters.get("first_name", "")
+                and usersFilters["first_name"] != user["first_name"]
+            ):
                 continue
-            if usersFilters.get("last_name", "") and usersFilters["last_name"] != user["last_name"]:
+            if (
+                usersFilters.get("last_name", "")
+                and usersFilters["last_name"] != user["last_name"]
+            ):
                 continue
             result.append(user)
         return result
 
     def getMyCourses(self, userId):
-        return self.db.getMyCourses(userId)
+        return self.getCourses(userId, {"creator_id": userId})
 
     # Auxiliary Functions
     def _addExtraData(self, courseData: dict, creatorData: dict, userId: int):
-        if creatorData.get("id", 0) != userId:
+        if creatorData.get("user_id", 0) != userId:
             userData = self.getUserData(userId)
         else:
             userData = creatorData
         courseData["creator_first_name"] = creatorData["first_name"]
         courseData["creator_last_name"] = creatorData["last_name"]
         courseData["can_edit"] = userId == courseData["creator_id"]
-        courseData["can_subscribe"] = not courseData["can_edit"] and self.courseValidator.canSubscribe(courseData["id"], userData)
-        courseData["can_collaborate"] = courseData["can_edit"] or self.courseValidator.canCollaborate(courseData["id"], userData)
+        courseData["can_subscribe"] = not courseData[
+            "can_edit"
+        ] and self.courseValidator.canSubscribe(courseData["id"], userData)
+        courseData["can_collaborate"] = courseData[
+            "can_edit"
+        ] or self.courseValidator.canCollaborate(courseData["id"], userData)
 
     def _getCreatorsData(self, courses):
         ids = set()
@@ -133,7 +157,7 @@ class CourseService:
         result = self.getUsersData(list(ids))
         creatorsData = {}
         for creator in result:
-            creatorsData[creator["id"]] = creator
+            creatorsData[creator["user_id"]] = creator
         return creatorsData
 
     def _getCourseName(self, courseId):
@@ -148,7 +172,7 @@ class CourseService:
 
     def getUsersData(self, userIds: List[int]):
         try:
-            return self.userClient.getBatchUsers(userIds)
+            return self.userClient.getBatchUsers(userIds).get("users", [])
         except HTTPError as e:
             print(f"exception while getting user f{e}")
             raise UserNotFound()
