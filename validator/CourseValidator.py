@@ -43,9 +43,7 @@ class CourseValidator:
         return True
 
     def canCollaborate(self, courseId: int, userData: dict):
-        if userData["blocked"] or self.isACollaborator(
-            courseId, userData["user_id"]
-        ):
+        if userData["blocked"] or self.isACollaborator(courseId, userData["user_id"]):
             return False
         return True
 

@@ -77,7 +77,10 @@ class DB:
         self.session.commit()
 
     def removeCollaborator(self, collaborator):
-        filters = {"id_course": collaborator["id"], "id_colaborator": collaborator["user_to_remove"]}
+        filters = {
+            "id_course": collaborator["id"],
+            "id_colaborator": collaborator["user_to_remove"],
+        }
         query = self._buildQuery("colaborators", "DELETE", filters=filters)
         self.session.execute(text(query))
         self.session.commit()
@@ -120,9 +123,7 @@ class DB:
         }
         query = self._buildQuery(table, columns=[column], filters=filters)
         self._parseResult(self.session.execute(text(query)))
-        return self._parseResult(
-            self.session.execute(text(query))
-        )
+        return self._parseResult(self.session.execute(text(query)))
 
     def _buildQuery(self, tableName, operation="SELECT", columns=None, filters=None):
         operation = operation.upper()

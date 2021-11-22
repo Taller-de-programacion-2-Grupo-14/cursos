@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, validator
 from exceptions.CourseException import InvalidSubscriptionType
+
 SUBSCRIPTION_TYPES = ["basico", "estandar", "premium"]
 
 
