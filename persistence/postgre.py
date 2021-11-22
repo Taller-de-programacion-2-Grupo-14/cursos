@@ -7,6 +7,7 @@ import re
 
 DEFAULT_OFFSET = 0
 DEFAULT_LIMIT = 500
+EDITABLE_FIELDS = ["name", "description", "location", "hashtags"]
 
 
 class DB:
@@ -58,9 +59,9 @@ class DB:
 
     def editCourse(self, courseNewInfo):
         columns = [
-            f"{column} = {newValue}"
+            f"{column} = '{newValue}'"
             for column, newValue in courseNewInfo.items()
-            if column != "id"
+            if column in EDITABLE_FIELDS
         ]
         query = self._buildQuery(
             "courses", "UPDATE", columns, filters={"id": courseNewInfo["id"]}
@@ -76,10 +77,9 @@ class DB:
         self.session.commit()
 
     def removeCollaborator(self, collaborator):
-        colab = self.session.query(Colaborators).get(
-            (collaborator["user_to_remove"], collaborator["id"])
-        )
-        self.session.delete(colab)
+        filters = {"id_course": collaborator["id"], "id_colaborator": collaborator["user_to_remove"]}
+        query = self._buildQuery("colaborators", "DELETE", filters=filters)
+        self.session.execute(text(query))
         self.session.commit()
 
     def getCourseUsers(self, courseId, getSubscribers=True):
@@ -122,7 +122,7 @@ class DB:
         self._parseResult(self.session.execute(text(query)))
         return self._parseResult(
             self.session.execute(text(query))
-        )  # ToDo: creo que no hay que parsear
+        )
 
     def _buildQuery(self, tableName, operation="SELECT", columns=None, filters=None):
         operation = operation.upper()
@@ -134,7 +134,6 @@ class DB:
         if operation == "DELETE":
             return f"{operation} FROM {tableName} {filtersQuery}"
         if operation == "UPDATE":
-            # ToDo: Agregar algo para que valide si el formato es el correcto (col = value)
             filtersQuery = re.sub(r"(.*)OFFSET.*", r"\1", filtersQuery)
             return f"{operation} {tableName} SET {', '.join(columns)} {filtersQuery}"
         if operation == "INSERT":
@@ -169,5 +168,8 @@ class DB:
         if not result:
             return courses
         for r in result:
-            courses.append(r._asdict())
+            if len(r) == 1:
+                courses.append(r[0])
+            else:
+                courses.append(r._asdict())
         return courses

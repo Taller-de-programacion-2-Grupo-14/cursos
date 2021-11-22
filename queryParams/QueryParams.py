@@ -24,7 +24,7 @@ class CourseQueryParams:
         location: Optional[str] = Query(None, min_length=3, max_length=255),
         free_text: Optional[str] = Query(None, max_length=255),
         offset: Optional[int] = Query(0, ge=0),
-        limit: Optional[int] = Query(100, le=500),
+        limit: Optional[int] = Query(500, le=500),
     ):
         self.filters = {
             "name": name,
@@ -53,7 +53,7 @@ class UsersQueryParams:
             description="Type of user to search. True (default): subscribers, False: collaborators",
         ),
         offset: Optional[int] = Query(0, ge=0),
-        limit: Optional[int] = Query(100, le=500),
+        limit: Optional[int] = Query(500, le=500),
     ):
         self.filters = {
             "first_name": first_name,

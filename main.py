@@ -1,5 +1,5 @@
 import os
-import uvicorn
+import uvicorn  # ToDo Before merge delete this
 from fastapi import FastAPI, Request, status, Depends
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -149,5 +149,6 @@ def handleUnknownException(request: Request, exc: Exception):
     )
 
 
+# ToDo Before merge delete this
 if __name__ == "__main__":
     uvicorn.run(app, port=8080)

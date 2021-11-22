@@ -25,10 +25,10 @@ class InvalidUserAction(CourseException):
 
 
 class IsAlreadyACollaborator(CourseException):
-    def __init__(self, courseName):
+    def __init__(self):
         super().__init__(
             status.HTTP_208_ALREADY_REPORTED,
-            f"The user is already a collaborator of the course '{courseName}'",
+            f"The user is already a collaborator of the course",
         )
 
 
@@ -72,4 +72,13 @@ class UserBlocked(CourseException):
         super().__init__(
             status.HTTP_401_UNAUTHORIZED,
             "Your account is blocked",
+        )
+
+
+class InvalidSubscriptionType(CourseException):
+    def __init__(self, subscriptionTypes):
+        super().__init__(
+            status.HTTP_400_BAD_REQUEST,
+            f"The subscription must be of one of the "
+            f"following types: {', '.join(subscriptionTypes)} ",
         )
