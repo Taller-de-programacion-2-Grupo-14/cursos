@@ -28,7 +28,7 @@ class CourseService:
         if course is None:
             raise CourseDoesNotExist
         if not self.courseValidator.canViewCourse(course, userId):
-            raise CourseDoesNotExist  # ToDo: ver si es necesaria otra opcion
+            raise CourseDoesNotExist
         creatorData = self.getUserData(course["creator_id"])
         self._addExtraData(course, creatorData, userId)
         return course
@@ -38,6 +38,8 @@ class CourseService:
         result = []
         creatorsData = self._getCreatorsData(courses)
         for course in courses:
+            if not self.courseValidator.canViewCourse(course, userId):
+                continue
             creatorData = creatorsData[course["creator_id"]]
             self._addExtraData(course, creatorData, userId)
             result.append(course)
@@ -59,13 +61,15 @@ class CourseService:
         ] and self.courseValidator.hasACourseWithTheSameName(
             courseNewInfo["name"], courseNewInfo["user_id"]
         ):
-            raise CourseAlreadyExists
+            raise CourseAlreadyExists(courseNewInfo["name"])
         self.db.editCourse(courseNewInfo)
 
     def addCollaborator(self, collaborator):
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(collaborator["id"])
         userData = self.getUserData(collaborator["user_id"])
-        if self.courseValidator.canCollaborate(collaborator["id"], userData):
+        if self.courseValidator.raiseExceptionIfCanNotCollaborate(
+            collaborator["id"], userData
+        ):
             self.db.addCollaborator(collaborator)
 
     def removeCollaborator(self, removeCollaborator):
@@ -89,7 +93,9 @@ class CourseService:
 
     def addSubscriber(self, courseId, subscriberId):
         subscriberData = self.getUserData(subscriberId)
-        if self.courseValidator.canSubscribe(courseId, subscriberData):
+        if self.courseValidator.raiseExceptionIfCanNotSubscribe(
+            courseId, subscriberData
+        ):
             self.db.addSubscriber(courseId, subscriberId)
 
     def removeSubscriber(self, courseId, subscriberId):
@@ -143,12 +149,17 @@ class CourseService:
         courseData["creator_first_name"] = creatorData["first_name"]
         courseData["creator_last_name"] = creatorData["last_name"]
         courseData["can_edit"] = userId == courseData["creator_id"]
-        courseData["can_subscribe"] = not courseData[
-            "can_edit"
-        ] and self.courseValidator.canSubscribe(courseData["id"], userData)
-        courseData["can_collaborate"] = courseData[
-            "can_edit"
-        ] or self.courseValidator.canCollaborate(courseData["id"], userData)
+        courseData["can_subscribe"] = (
+            not self.courseValidator.isCancelled(courseData)
+            and not courseData["can_edit"]
+            and self.courseValidator.canSubscribe(courseData["id"], userData)
+        )
+        courseData["can_collaborate"] = not self.courseValidator.isCancelled(
+            courseData
+        ) and (
+            not courseData["can_edit"]
+            or self.courseValidator.canCollaborate(courseData["id"], userData)
+        )
 
     def _getCreatorsData(self, courses):
         ids = set()

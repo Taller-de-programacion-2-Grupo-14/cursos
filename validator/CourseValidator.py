@@ -31,21 +31,22 @@ class CourseValidator:
 
     def canSubscribe(self, courseId: int, userData: dict):
         courseData = self.db.getCourse(courseId)
-        self.raiseExceptionIfUserIsBlocked(userData)
-        if self.isSubscribed(courseId, userData["user_id"]):
-            raise IsAlreadySubscribed
-        if courseData["creator_id"] == userData["user_id"]:
-            raise InvalidUserAction
-        if not self.hasCorrectSubscriptionType(
-            courseData["subscription"], userData["subscription"]
+        if (
+            userData["blocked"]
+            or self.isSubscribed(courseId, userData["user_id"])
+            or courseData["creator_id"] == userData["user_id"]
+            or not self.hasCorrectSubscriptionType(
+                courseData["subscription"], userData["subscription"]
+            )
         ):
-            raise SubscriptionInvalid
+            return False
         return True
 
     def canCollaborate(self, courseId: int, userData: dict):
-        self.raiseExceptionIfUserIsBlocked(userData)
-        if self.isACollaborator(courseId, userData["user_id"]):
-            raise IsAlreadyACollaborator
+        if userData["blocked"] or self.isACollaborator(
+            courseId, userData["user_id"]
+        ):
+            return False
         return True
 
     def isCancelled(self, courseData: dict):
@@ -69,6 +70,25 @@ class CourseValidator:
         if not self.isTheCourseCreator(courseId, userId):
             raise InvalidUserAction
 
+    def raiseExceptionIfCanNotSubscribe(self, courseId: int, userData: dict):
+        courseData = self.db.getCourse(courseId)
+        self.raiseExceptionIfUserIsBlocked(userData)
+        if self.isSubscribed(courseId, userData["user_id"]):
+            raise IsAlreadySubscribed
+        if courseData["creator_id"] == userData["user_id"]:
+            raise InvalidUserAction
+        if not self.hasCorrectSubscriptionType(
+            courseData["subscription"], userData["subscription"]
+        ):
+            raise SubscriptionInvalid
+        return True
+
+    def raiseExceptionIfCanNotCollaborate(self, courseId: int, userData: dict):
+        self.raiseExceptionIfUserIsBlocked(userData)
+        if self.isACollaborator(courseId, userData["user_id"]):
+            raise IsAlreadyACollaborator
+        return True
+
     def raiseExceptionIfUserIsBlocked(self, userData):
-        if userData.get("is_blocked", False):
+        if userData.get("blocked", False):
             raise UserBlocked
