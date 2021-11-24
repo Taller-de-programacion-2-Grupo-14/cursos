@@ -28,7 +28,7 @@ class IsAlreadyACollaborator(CourseException):
     def __init__(self):
         super().__init__(
             status.HTTP_208_ALREADY_REPORTED,
-            f"The user is already a collaborator of the course",
+            "The user is already a collaborator of the course",
         )
 
 

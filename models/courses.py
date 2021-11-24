@@ -1,7 +1,6 @@
-from sqlalchemy import Column
-from sqlalchemy import Integer
-from sqlalchemy import String
+from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from models.database import Base
+from datetime import datetime
 
 
 class Courses(Base):
@@ -16,3 +15,6 @@ class Courses(Base):
     hashtags = Column(String(1000))
     location = Column(String(255))
     cancelled = Column(Integer)
+    created_on = Column(DateTime(), default=datetime.now)
+    updated_on = Column(DateTime(), default=datetime.now, onupdate=datetime.now())
+    blocked = Column(Boolean(), default=False)

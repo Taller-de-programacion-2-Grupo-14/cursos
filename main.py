@@ -59,7 +59,7 @@ def addCollaborator(collaborator: CollaboratorSchema):
     return courseController.handleAddCollaborator(collaborator.dict())
 
 
-@app.delete("/courses/collaborators")
+@app.delete("/courses/remove_collaborator")
 def removeCollaborator(collaborator: RemoveCollaboratorSchema):
     return courseController.handleRemoveCollaborator(collaborator.dict())
 
