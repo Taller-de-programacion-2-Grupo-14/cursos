@@ -140,7 +140,7 @@ class CourseService:
     def getMyCourses(self, userId):
         return self.getCourses(userId, {"creator_id": userId})
 
-    # Auxiliary Functions
+    # Auxiliar Functions
     def _addExtraData(self, courseData: dict, creatorData: dict, userId: int):
         if creatorData.get("user_id", 0) != userId:
             userData = self.getUserData(userId)
