@@ -1,4 +1,4 @@
-name: flake8 Lint and Black Format
+name: Linters
 
 on: 'push'
 
