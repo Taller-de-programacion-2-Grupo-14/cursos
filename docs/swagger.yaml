@@ -20,7 +20,7 @@ paths:
         - in: header
           name: x-access-token
           required: true
-          description: token recibido del usuario que desea editar el curso
+          description: token recibido del usuario que desea crear el curso
       requestBody:
         description: body para la creacion del curso
         required: true
@@ -33,25 +33,30 @@ paths:
           description: Curso creado correctamente
         '400':
           description: Bad Request
+        '401':
+          description: Usuario bloqueado
 
   '/courses':
     'get':
       tags:
         - Course
-      description: Obtengo una lista con todos los cursos
+      description: Obtengo una lista con todos los cursos (que NO estan CANCELADOS o BLOQUEADOS)
       parameters:
         - in: query
           name: location
-          example: 'Colombia'
+          example: 'Obera'
         - in: query
           name: name
-          example: 'Algoritmos2'
+          example: 'Python'
         - in: query
-          name: creator_name
-          example: 'Essaya'
+          name: creator_first_name
+          example: 'Juan'
+        - in: query
+          name: creator_last_name
+          example: 'Perez'
         - in: query
           name: hashtags
-          example: 'python,nacho,branca'
+          example: 'python, nacho, branca'
         - in: query
           name: type
           example: 'Programacion'
@@ -82,6 +87,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/coursesList'
+        '204':
+          description: No content
         '400':
           description: Bad Request
 
@@ -89,7 +96,8 @@ paths:
     'get':
       tags:
         - Course
-      description: Obtiene informacion mas detallada sobre el curso
+      description: Obtiene la informacion de un curso. Si el curso esta CANCELADO solo el CREADOR lo puede ver. Si
+      esta BLOQUEADO solo el ADMIN puede verlo.
       parameters:
         - in: path
           name: id
@@ -113,7 +121,7 @@ paths:
     'delete':
       tags:
         - Course
-      description: Elimina curso existente
+      description: Cancela un curso existente
       parameters:
         - in: path
           name: id
@@ -138,11 +146,12 @@ paths:
     'patch':
       tags:
         - Course
-      description: Modifica la informacion de un curso
+      description: Edita la informacion de un curso
       parameters:
         - in: path
           name: id
           description: id del curso
+          example: 1
           required: true
         - in: header
           name: x-access-token
@@ -178,7 +187,7 @@ paths:
         - in: header
           name: x-access-token
           required: true
-          description: token recibido del creador del curso
+          description: token recibido del usuario que sera colaborador
       requestBody:
         description: Body para agregar un colaborador
         required: true
@@ -189,22 +198,25 @@ paths:
       responses:
         '200':
           description: Collaborator agregado correctamente
+        '208':
+          description: Ya es un colaborador del curso
         '401':
           description: Token invalido
         '403':
           description: No token provisto
         '404':
-          description: El collaborator no existe
+          description: El curso no existe
 
+  '/courses/remove_collaborator':
     'delete':
       tags:
         - Course
-      description: Quita a un colaborador del curso
+      description: Elimina a un colaborador del curso
       parameters:
         - in: header
           name: x-access-token
           required: true
-          description: token recibido del creador del curso
+          description: token recibido del usuario que realiza la accion
       requestBody:
         description: Body para quitar un colaborador
         required: true
@@ -234,14 +246,16 @@ paths:
         - in: header
           name: x-access-token
           required: true
-          description: token recibido del creador del curso
+          description: token recibido del usuario que quiere suscribirse
       responses:
         '200':
           description: Suscriptor agregado correctamente
+        '208':
+          description: El usuario ya esta suscrito
         '401':
           description: Token invalido
         '403':
-          description: No token provisto
+          description: No token provisto o You should upgrade your membership to enroll this course
         '404':
           description: El curso no existe
 
@@ -256,7 +270,7 @@ paths:
         - in: header
           name: x-access-token
           required: true
-          description: token recibido del creador del curso
+          description: token recibido del usuario que realiza la accion
 
       responses:
         '200':
@@ -272,7 +286,7 @@ paths:
     'get':
       tags:
         - Course
-      description: Obtiene los cursos que cree
+      description: Obtiene los cursos (que NO estan BLOQUEADOS) que cree
       parameters:
         - in: header
           name: x-access-token
@@ -287,12 +301,14 @@ paths:
                 $ref: '#/components/schemas/myCourses'
         '204':
           description: No content
+        '401':
+          description: Usuario bloqueado
 
   '/courses/my_subscriptions':
     'get':
       tags:
         - Course
-      description: Obtiene los cursos que cree
+      description: Obtiene los cursos (que NO estan CANCELADOS o BLOQUEADOS) a los cuales me suscribi
       parameters:
         - in: header
           name: x-access-token
@@ -312,7 +328,7 @@ paths:
     'get':
       tags:
         - Course
-      description: Obtiene los alumnos o colaboradores de un curso
+      description: Obtiene los alumnos o colaboradores (que NO estan BLOQUEADOS) de un curso
       parameters:
         - in: path
           name: id
@@ -325,6 +341,7 @@ paths:
           example: 'Perez'
         - in: query
           name: subscribers
+          description: Si es true obtiene los subscribers, caso contrario devuelve los colaboradores de un curso
           example: 'true'
         - in: query
           name: offset
@@ -342,9 +359,124 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/userNames'
+                $ref: '#/components/schemas/courseUsers'
         '204':
           description: No content
+
+  '/courses/block/{courseId}':
+    'delete':
+      tags:
+        - Course
+      description: Bloquea un curso
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido de usuario
+      responses:
+        '200':
+          description: Curso bloqueado correctamente
+        '208':
+          description: El curso ya se encuentra bloqueado
+        '400':
+          description: Invalid user action
+        '404':
+          description: Course not found
+
+  '/courses/unblock/{courseId}':
+    'post':
+      tags:
+        - Course
+      description: Desbloquea un curso
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido de usuario
+      responses:
+        '200':
+          description: Curso desbloqueado correctamente
+        '208':
+          description: El curso ya se encuentra desbloqueado
+        '400':
+          description: Invalid user action
+        '404':
+          description: Course not found
+
+  '/courses/favorites':
+    'post':
+      tags:
+        - Course
+      description: Agrega un curso favorito al usuario
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido de usuario
+      requestBody:
+        description: Body para agregar un curso favorito
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/favoriteCourse'
+      responses:
+        '200':
+          description: Curso faveado correctamente
+        '208':
+          description: El curso ya se encuentra faveado
+        '404':
+          description: Course not found
+
+    'delete':
+      tags:
+        - Course
+      description: Quita un curso de la lista de favoritos
+      parameters:
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido de usuario
+      requestBody:
+        description: Body para quitar un curso faveado
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/favoriteCourse'
+      responses:
+        '200':
+          description: Curso eliminado correctamente de los favoritos
+        '208':
+          description: El curso no se encuentra faveado
+        '400':
+          description: Invalid user action
+        '404':
+          description: Course not found
+
+    'get':
+      tags:
+        - Course
+      description: Obtiene los cursos (que NO estan CANCELADOS o BLOQUEADOS)
+      parameters:
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido de usuario
+      responses:
+        '200':
+          description: Todo okay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/favCourses'
+        '400':
+          description: Bad Request
 
 components:
   schemas:
@@ -361,82 +493,7 @@ components:
       properties:
         name:
           type: string
-          example: 'Mas Python que nunca'
-        description:
-          type: string
-          example: 'Van a codear muchas cosas en python y van a ver que es alto lenguaje'
-        hashtags:
-          type: string
-          example: '#Python, #Sarasa'
-        type:
-          type: string
-          example: 'Programacion'
-        exams:
-          type: integer
-          example: 3
-        subscription:
-          type: string
-          example: 'Premium'
-        location:
-          type: string
-          example: 'Obera'
-
-    coursesList:
-      type: object
-      properties:
-        name:
-          type: string
-          example: 'Mas Python que nunca'
-        id:
-          type: integer
-          example: 1
-        creator_name:
-          type: string
-          example: 'Essaya'
-        subscription:
-          type: string
-          example: 'Premium'
-        location:
-          type: string
-          example: 'Obera'
-        hashtags:
-          type: string
-          example: '#FIUBA'
-        desciption:
-          type: string
-          example: 'descripcion del curso'
-        exams:
-          type: integer
-          example: 1
-        type:
-          type: string
-          example: 'Programacion'
-
-
-    editCourse:
-      type: object
-      properties:
-        name:
-          type: string
-          example: 'El regreso de Python'
-        description:
-          type: string
-          example: 'Van a codear muchas cosas en python y van a ver que es alto lenguaje'
-        hashtags:
-          type: string
-          example: '#Python, #Sarasa, #Fulano'
-        location:
-          type: string
-          example: 'Corrientes'
-
-    courseInfo:
-      properties:
-        name:
-          type: string
-          example: 'Mas Python que nunca'
-        creator_name:
-          type: string
-          example: 'Essaya'
+          example: 'Python'
         description:
           type: string
           example: 'Van a codear muchas cosas en python y van a ver que es alto lenguaje'
@@ -455,62 +512,203 @@ components:
         location:
           type: string
           example: 'Obera'
-        canEdit:
+
+    coursesList:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 'Python'
+        id:
+          type: integer
+          example: 1
+        creator_id:
+          type: integer
+          example: 10
+        creator_first_name:
+          type: string
+          example: 'Juan'
+        creator_last_name:
+          type: string
+          example: 'Perez'
+        can_edit:
           type: boolean
           example: true
+        can_collaborate:
+          type: boolean
+          example: true
+        can_subscribe:
+          type: boolean
+          example: false
+        subscription:
+          type: string
+          example: 'premium'
+        location:
+          type: string
+          example: 'Obera'
+        hashtags:
+          type: string
+          example: 'Python, Sarasa'
+        desciption:
+          type: string
+          example: 'Van a codear muchas cosas en python y van a ver que es alto lenguaje'
+        exams:
+          type: integer
+          example: 1
+        type:
+          type: string
+          example: 'Programacion'
+        cancelled:
+          type: integer
+          example: 0
+        blocked:
+          type: boolean
+          example: false
+        created_on:
+          type: string
+          example: 'timestamp, swagger no tiene'
+        updated_on:
+          type: string
+          example: 'timestamp, swagger no tiene'
+
+
+    editCourse:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 'El regreso de Python'
+        description:
+          type: string
+          example: 'Van a codear muchas cosas en python y van a ver que es alto lenguaje'
+        hashtags:
+          type: string
+          example: 'Python, Sarasa, Fulano'
+        location:
+          type: string
+          example: 'Corrientes'
+
+    courseInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 'Python'
+        id:
+          type: integer
+          example: 1
+        creator_id:
+          type: integer
+          example: 10
+        creator_first_name:
+          type: string
+          example: 'Juan'
+        creator_last_name:
+          type: string
+          example: 'Perez'
+        can_edit:
+          type: boolean
+          example: true
+        can_collaborate:
+          type: boolean
+          example: true
+        can_subscribe:
+          type: boolean
+          example: false
+        is_subscribed:
+          type: boolean
+          example: false
+        subscription:
+          type: string
+          example: 'premium'
+        location:
+          type: string
+          example: 'Obera'
+        hashtags:
+          type: string
+          example: 'Python, Sarasa'
+        desciption:
+          type: string
+          example: 'Van a codear muchas cosas en python y van a ver que es alto lenguaje'
+        exams:
+          type: integer
+          example: 1
+        type:
+          type: string
+          example: 'Programacion'
+        cancelled:
+          type: integer
+          example: 0
+        blocked:
+          type: boolean
+          example: false
+        created_on:
+          type: string
+          example: 'timestamp, swagger no tiene'
+        updated_on:
+          type: string
+          example: 'timestamp, swagger no tiene'
 
     courseAddCollaborator:
       type: object
       required:
         - id
-        - collaborator_id
       properties:
         id:
           type: integer
-          example: 10
-        collaborator_id:
-          type: integer
-          example: 50
+          description: id del curso
+          example: 1
 
     courseRemoveCollaborator:
       type: object
       required:
         - id_creator
-        - id_course
+        - id
         - collaborator_mail
       properties:
         id:
           type: integer
+          description: id del curso
           example: 1
         user_to_remove:
           type: integer
+          description: id del colaborador a eliminar
           example: 50
 
-    getCourseInfo:
-      type: object
-      required:
-        -id
-      properties:
-        id:
-          type: integer
-          example: 1
     myCourses:
       type: object
       properties:
         myCourses:
           type: array
+          description: Es un array en el cual cada elemento contiene TODA la informacion del curso que cree
 
     mySubscriptions:
       type: object
       properties:
         mySubscriptions:
           type: array
+          description: Es un array en el cual cada elemento contiene TODA la informacion del curso al cual me suscribi
 
-    userNames:
+    courseUsers:
       type: object
       properties:
-        userNames:
+        courseUsers:
           type: array
-          items:
-            type: string
-          example: ['juan','pedro']
+          description: Es un array en el cual cada elemento contiene TODA la informacion de un usuario
+
+    favoriteCourse:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+          description: id del curso a favear
+          example: 1
+
+    favCourses:
+      type: object
+      properties:
+        favCourses:
+          type: array
+          description: Es un array en el cual cada elemento contiene TODA la informacion de un curso faveado
