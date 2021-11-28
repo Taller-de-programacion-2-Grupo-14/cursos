@@ -188,7 +188,10 @@ class DB:
         if operation == "DELETE":
             return f"{operation} FROM {tableName} {filtersQuery}"
         if operation == "UPDATE":
-            return f"{operation} {tableName} SET {', '.join(columns + ['updated_on = now()'])} {filtersQuery}"
+            return (
+                f"{operation} {tableName} SET {', '.join(columns +['updated_on = now()'])}"
+                f" {filtersQuery}"
+            )
         if operation == "INSERT":
             return f"{operation} INTO {tableName} VALUES({', '.join(columns)})"
 
