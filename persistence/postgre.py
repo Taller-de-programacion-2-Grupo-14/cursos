@@ -3,6 +3,8 @@ from sqlalchemy import text
 from models.courses import Courses
 from models.colaborators import Colaborators
 from models.enrolled import Enrolled
+from models.favoriteCourses import FavoriteCourses
+from datetime import datetime
 import re
 
 DEFAULT_OFFSET = 0
@@ -33,6 +35,9 @@ class DB:
             hashtags=hashtags,
             location=location,
             cancelled=0,
+            created_on=datetime.now,
+            updated_on=datetime.now,
+            blocked=False
         )
         self.session.add(c)
         self.session.commit()
@@ -106,9 +111,9 @@ class DB:
         self.session.execute(text(query))
         self.session.commit()
 
-    def getMySubscriptions(self, user_id):
+    def getMySubscriptions(self, userId):
         query = f"SELECT * FROM (SELECT id_course AS courseId FROM enrolled WHERE id_student \
-                = {user_id}) as studentCourses JOIN courses AS c ON c.id \
+                = {userId}) as studentCourses JOIN courses AS c ON c.id \
                 = studentCourses.courseId"
         return self._parseResult(self.session.execute(text(query)))
 
@@ -124,6 +129,36 @@ class DB:
         query = self._buildQuery(table, columns=[column], filters=filters)
         self._parseResult(self.session.execute(text(query)))
         return self._parseResult(self.session.execute(text(query)))
+
+    def blockCourse(self, courseId: int):
+        query = self._buildQuery("courses", "UPDATE", ["blocked = true"], filters={"id": courseId})
+        self.session.execute(text(query))
+        self.session.commit()
+
+    def unblockCourse(self, courseId: int):
+        query = self._buildQuery("courses", "UPDATE", ["blocked = false"], filters={"id": courseId})
+        self.session.execute(text(query))
+        self.session.commit()
+
+    def addFavoriteCourse(self, courseId, userId):
+        favoriteCourses = FavoriteCourses(course_id=courseId, user_id=userId)
+        self.session.add(favoriteCourses)
+        self.session.commit()
+
+    def getFavoriteCourses(self, userId):
+        query = f"SELECT * FROM (SELECT course_id AS courseId FROM favoriteCourses WHERE user_id \
+                = {userId}) as favCourses JOIN courses AS c ON c.id \
+                = favCourses.courseId"
+        return self._parseResult(self.session.execute(text(query)))
+
+    def removeFavoriteCourse(self, courseId, userId):
+        query = self._buildQuery("favoriteCourses", "DELETE", filters={"course_id": courseId, "user_id": userId})
+        self.session.execute(text(query))
+        self.session.commit()
+
+    def getCoursesLikedBy(self, userId):
+        query = self._buildQuery("favoriteCourses", columns=["course_id"], filters={"user_id": userId})
+        return {record.course_id for record in self.session.execute(text(query))}
 
     def _buildQuery(self, tableName, operation="SELECT", columns=None, filters=None):
         operation = operation.upper()

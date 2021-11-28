@@ -95,6 +95,31 @@ def getCourseUsers(
     )
 
 
+@app.delete("/courses/block/{courseId}")
+def blockCourse(courseId: int, user: UserSchema):
+    return courseController.handleBlockCourse(courseId, user.user_id)
+
+
+@app.post("/courses/unblock/{courseId}")
+def unblockCourse(courseId: int, user: UserSchema):
+    return courseController.handleUnblockCourse(courseId, user.user_id)
+
+
+@app.post("/courses/favorites")
+def favCourse(favCourse: FavCourseSchema):
+    return courseController.handleAddFavoriteCourse(favCourse.dict())
+
+
+@app.get("/courses/favorites")
+def getFavorites(user: UserSchema):
+    return courseController.handleGetFavoriteCourses(user.user_id)
+
+
+@app.delete("/courses/favorites")
+def removeFavorite(removeFavCourse: FavCourseSchema):
+    return courseController.handleRemoveFavoriteCourse(removeFavCourse.dict())
+
+
 @app.get("/doc-yml")
 def getSwagger():
     with open("docs/swagger.yaml") as f:
@@ -151,4 +176,4 @@ def handleUnknownException(request: Request, exc: Exception):
 
 # ToDo Before merge delete this
 if __name__ == "__main__":
-    uvicorn.run(app, port=8080)
+    uvicorn.run(app, port=8000)

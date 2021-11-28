@@ -1,13 +1,9 @@
 from requests import HTTPError
 from typing import List
-
 from exceptions.CourseException import *
 from external.users import Users
 from persistence.postgre import DB
 from validator.CourseValidator import CourseValidator
-
-DEFAULT_OFFSET = 0
-DEFAULT_LIMIT = 10
 
 
 class CourseService:
@@ -38,6 +34,7 @@ class CourseService:
         result = []
         creatorsData = self._getCreatorsData(courses)
         for course in courses:
+            # ToDo: mostramos los cancelados por mas que seas el creador aca o no?
             if not self.courseValidator.canViewCourse(course, userId):
                 continue
             creatorData = creatorsData[course["creator_id"]]
@@ -92,6 +89,7 @@ class CourseService:
             raise InvalidUserAction
 
     def addSubscriber(self, courseId, subscriberId):
+        self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId)
         subscriberData = self.getUserData(subscriberId)
         if self.courseValidator.raiseExceptionIfCanNotSubscribe(
             courseId, subscriberData
@@ -139,6 +137,46 @@ class CourseService:
 
     def getMyCourses(self, userId):
         return self.getCourses(userId, {"creator_id": userId})
+
+    def blockCourse(self, courseId: int, userId: int):
+        self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId)
+        userData = self.userClient.getUser(userId)
+        self.courseValidator.raiseExceptionIfIsNotAdmin(userData)
+        if self.courseValidator.isBlocked(courseId):
+            raise CourseIsAlreadyBlocked
+        self.db.blockCourse(courseId)
+
+    def unblockCourse(self, courseId: int, userId: int):
+        self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId)
+        userData = self.userClient.getUser(userId)
+        self.courseValidator.raiseExceptionIfIsNotAdmin(userData)
+        if not self.courseValidator.isBlocked(courseId):
+            raise CourseIsNotBlocked
+        self.db.unblockCourse(courseId)
+
+    def addFavoriteCourse(self, favCourse):
+        courseId = favCourse["id"]
+        userId = favCourse["user_id"]
+        self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId)
+        self.courseValidator.raiseExceptionIfCourseIsAlreadyLiked(courseId, userId)
+        self.db.addFavoriteCourse(courseId, userId)
+
+    def getFavoriteCourses(self, userId):
+        favCourses = self.db.getFavoriteCourses(userId)
+        result = []
+        creatorsData = self._getCreatorsData(favCourses)
+        for course in favCourses:
+            creatorData = creatorsData["creator_id"]
+            self._addExtraData(course, creatorData, userId)
+            result.append(course)
+        return result
+
+    def removeFavoriteCourse(self, removeFavCourse):
+        courseId = removeFavCourse["id"]
+        userId = removeFavCourse["user_id"]
+        self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId)
+        self.courseValidator.raiseExceptionIfCourseIsNotLiked(courseId, userId)
+        self.db.removeFavoriteCourse(courseId, userId)
 
     # Auxiliary Functions
     def _addExtraData(self, courseData: dict, creatorData: dict, userId: int):

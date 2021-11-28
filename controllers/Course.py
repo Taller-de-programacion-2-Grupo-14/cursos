@@ -1,11 +1,9 @@
 from fastapi import status
-
-DEFAULT_OFFSET = 0
-DEFAULT_LIMIT = 10
+from service.Course import CourseService
 
 
 class CourseController:
-    def __init__(self, courseService):
+    def __init__(self, courseService: CourseService):
         self.service = courseService
 
     def handleCreate(self, course_create_data):
@@ -17,8 +15,7 @@ class CourseController:
         return {"message": course, "status": status.HTTP_200_OK}
 
     def handleGetCourses(self, userId, courseFilters):
-        courses = self.service.getCourses(userId, courseFilters)
-        return {"message": courses, "status": self._getCorrectStatus(courses)}
+        return self._getListCoursesResponse(self.service.getCourses(userId, courseFilters))
 
     def handleDelete(self, courseId, userId):
         self.service.deleteCourse(courseId, userId)
@@ -48,19 +45,35 @@ class CourseController:
         return {"message": "Successful unsubscription", "status": status.HTTP_200_OK}
 
     def handleGetMyCourses(self, userId):
-        myCourses = self.service.getMyCourses(userId)
-        return {"message": myCourses, "status": self._getCorrectStatus(myCourses)}
+        return self._getListCoursesResponse(self.service.getMyCourses(userId))
 
     def handleGetMySubscriptions(self, userId):
-        mySubscriptions = self.service.getMySubscriptions(userId)
-        return {
-            "message": mySubscriptions,
-            "status": self._getCorrectStatus(mySubscriptions),
-        }
+        return self._getListCoursesResponse(self.service.getMySubscriptions(userId))
 
     def handleGetCourseUsers(self, courseId, userId, usersFilters):
-        users = self.service.getUsers(courseId, userId, usersFilters)
-        return {"message": users, "status": self._getCorrectStatus(users)}
+        return self._getListCoursesResponse(self.service.getUsers(courseId, userId, usersFilters))
+
+    def handleBlockCourse(self, courseId, userId):
+        self.service.blockCourse(courseId, userId)
+        return {"message": "Course blocked correctly", "status": status.HTTP_200_OK}
+
+    def handleUnblockCourse(self, courseId, userId):
+        self.service.unblockCourse(courseId, userId)
+        return {"message": "Course unblocked correctly", "status": status.HTTP_200_OK}
+
+    def handleAddFavoriteCourse(self, favCourse):
+        self.service.addFavoriteCourse(favCourse)
+        return {"message": "Course added correctly to your Favorites", "status": status.HTTP_200_OK}
+
+    def handleGetFavoriteCourses(self, userId):
+        return self._getListCoursesResponse(self.service.getFavoriteCourses(userId))
+
+    def handleRemoveFavoriteCourse(self, removeFavCourse):
+        self.service.removeFavoriteCourse(removeFavCourse)
+        return {"message": "Course removed correctly from your Favorites", "status": status.HTTP_200_OK}
+
+    def _getListCoursesResponse(self, coursesList):
+        return {"message": coursesList, "status": self._getCorrectStatus(coursesList)}
 
     def _getCorrectStatus(self, array):
         return status.HTTP_200_OK if len(array) else status.HTTP_204_NO_CONTENT
