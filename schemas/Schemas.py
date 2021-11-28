@@ -16,9 +16,10 @@ class CreateCourseSchema(BaseModel):
 
     @validator("subscription")
     def validSubscriptionType(cls, subscription):
-        if subscription.lower() not in SUBSCRIPTION_TYPES:
+        subscription = subscription.lower()
+        if subscription not in SUBSCRIPTION_TYPES:
             raise InvalidSubscriptionType(SUBSCRIPTION_TYPES)
-        return subscription.lower()
+        return subscription
 
 
 class DeleteCourseSchema(BaseModel):
@@ -50,4 +51,5 @@ class UserSchema(BaseModel):
 
 
 class FavCourseSchema(BaseModel):
+    user_id: int
     id: int

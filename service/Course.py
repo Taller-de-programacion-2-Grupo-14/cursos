@@ -38,6 +38,8 @@ class CourseService:
             if not self.courseValidator.canViewCourse(course, userId):
                 continue
             creatorData = creatorsData[course["creator_id"]]
+            if self._filterUserByName(courseFilters, creatorData, prefix="creator_"):
+                continue
             self._addExtraData(course, creatorData, userId)
             result.append(course)
         return result
@@ -110,7 +112,7 @@ class CourseService:
         result = []
         creatorsData = self._getCreatorsData(mySubscriptions)
         for course in mySubscriptions:
-            creatorData = creatorsData["creator_id"]
+            creatorData = creatorsData[course["creator_id"]]
             self._addExtraData(course, creatorData, userId)
             result.append(course)
         return result
@@ -122,15 +124,7 @@ class CourseService:
         usersData = self.getUsersData(userIds)
         result = []
         for user in usersData:
-            if (
-                usersFilters.get("first_name", "")
-                and usersFilters["first_name"] != user["first_name"]
-            ):
-                continue
-            if (
-                usersFilters.get("last_name", "")
-                and usersFilters["last_name"] != user["last_name"]
-            ):
+            if self._filterUserByName(usersFilters, user):
                 continue
             result.append(user)
         return result
@@ -166,7 +160,7 @@ class CourseService:
         result = []
         creatorsData = self._getCreatorsData(favCourses)
         for course in favCourses:
-            creatorData = creatorsData["creator_id"]
+            creatorData = creatorsData[course["creator_id"]]
             self._addExtraData(course, creatorData, userId)
             result.append(course)
         return result
@@ -225,3 +219,16 @@ class CourseService:
         except HTTPError as e:
             print(f"exception while getting user f{e}")
             raise UserNotFound()
+
+    def _filterUserByName(self, filters, user, prefix=""):
+        if (
+                filters.get(prefix + "first_name", "")
+                and filters[prefix + "first_name"] != user["first_name"]
+        ):
+            return True
+        if (
+                filters.get(prefix + "last_name", "")
+                and filters[prefix + "last_name"] != user["last_name"]
+        ):
+            return True
+        return False
