@@ -14,7 +14,8 @@ class CourseQueryParams:
     def __init__(
         self,
         name: Optional[str] = Query(None, min_length=1, max_length=255),
-        creator_name: Optional[str] = Query(None, min_length=3, max_length=50),
+        creator_first_name: Optional[str] = Query(None, min_length=3, max_length=50),
+        creator_last_name: Optional[str] = Query(None, min_length=3, max_length=50),
         hashtags: Optional[str] = Query(None, min_length=3, max_length=50),
         type: Optional[str] = None,
         exams: Optional[int] = Query(None, ge=0),
@@ -28,7 +29,8 @@ class CourseQueryParams:
     ):
         self.filters = {
             "name": name,
-            "creatorName": creator_name,
+            "creator_first_name": creator_first_name,
+            "creator_last_name": creator_last_name,
             "hashtags": hashtags,
             "type": type,
             "exams": exams,

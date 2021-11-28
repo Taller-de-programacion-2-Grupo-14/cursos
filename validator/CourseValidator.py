@@ -50,6 +50,10 @@ class CourseValidator:
     def isCancelled(self, courseData: dict):
         return courseData.get("cancelled", 0)
 
+    def isBlocked(self, courseId):
+        course = self.db.getCourse(courseId)
+        return course["blocked"]
+
     def hasCorrectSubscriptionType(
         self, courseSubscription: str, userSubscription: str
     ):
@@ -90,3 +94,17 @@ class CourseValidator:
     def raiseExceptionIfUserIsBlocked(self, userData):
         if userData.get("blocked", False):
             raise UserBlocked
+
+    # ToDo: completar metodos
+    def raiseExceptionIfIsNotAdmin(self, userData):
+        if not userData.get("is_admin", False):
+            raise InvalidUserAction
+
+    def raiseExceptionIfCourseIsAlreadyLiked(self, courseId, userId):
+        if courseId in self.db.getCoursesLikedBy(userId):
+            raise CourseIsAlreadyLiked
+
+    def raiseExceptionIfCourseIsNotLiked(self, courseId, userId):
+        if courseId not in self.db.getCoursesLikedBy(userId):
+            raise CourseIsAlreadyLiked
+

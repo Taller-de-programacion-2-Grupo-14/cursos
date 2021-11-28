@@ -47,3 +47,7 @@ class RemoveCollaboratorSchema(BaseModel):
 
 class UserSchema(BaseModel):
     user_id: int
+
+
+class FavCourseSchema(BaseModel):
+    id: int

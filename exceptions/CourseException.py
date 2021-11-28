@@ -82,3 +82,35 @@ class InvalidSubscriptionType(CourseException):
             f"The subscription must be of one of the "
             f"following types: {', '.join(subscriptionTypes)} ",
         )
+
+
+class CourseIsAlreadyBlocked(CourseException):
+    def __init__(self):
+        super().__init__(
+            status.HTTP_208_ALREADY_REPORTED,
+            "The course is already blocked",
+        )
+
+
+class CourseIsNotBlocked(CourseException):
+    def __init__(self):
+        super().__init__(
+            status.HTTP_208_ALREADY_REPORTED,
+            "The course is not blocked",
+        )
+
+
+class CourseIsAlreadyLiked(CourseException):
+    def __init__(self):
+        super().__init__(
+            status.HTTP_208_ALREADY_REPORTED,
+            "The course is already liked",
+        )
+
+
+class CourseIsNotLiked(CourseException):
+    def __init__(self):
+        super().__init__(
+            status.HTTP_208_ALREADY_REPORTED,
+            "The course is not liked",
+        )
