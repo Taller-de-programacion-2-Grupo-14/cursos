@@ -40,7 +40,7 @@ paths:
     'get':
       tags:
         - Course
-      description: Obtengo una lista con todos los cursos (que NO estan CANCELADOS o BLOQUEADOS)
+      description: Obtengo una lista con todos los cursos (que NO estan CANCELADOS o BLOQUEADOS) que su estado es on course
       parameters:
         - in: query
           name: location
@@ -96,8 +96,7 @@ paths:
     'get':
       tags:
         - Course
-      description: Obtiene la informacion de un curso. Si el curso esta CANCELADO solo el CREADOR lo puede ver. Si
-      esta BLOQUEADO solo el ADMIN puede verlo.
+      description: Obtiene la informacion de un curso. Si el curso esta CANCELADO solo el CREADOR lo puede ver. Si esta BLOQUEADO solo el ADMIN puede verlo.
       parameters:
         - in: path
           name: id
@@ -414,6 +413,7 @@ paths:
       tags:
         - Course
       description: Agrega un curso favorito al usuario
+      parameters:
         - in: header
           name: x-access-token
           required: true
@@ -432,6 +432,25 @@ paths:
           description: El curso ya se encuentra faveado
         '404':
           description: Course not found
+
+    'get':
+      tags:
+        - Course
+      description: Obtiene los cursos (que NO estan CANCELADOS o BLOQUEADOS)
+      parameters:
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido de usuario
+      responses:
+        '200':
+          description: Todo okay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/favCourses'
+        '400':
+          description: Bad Request
 
   '/courses/favorites/remove':
     'delete':
@@ -460,10 +479,11 @@ paths:
         '404':
           description: Course not found
 
+  '/courses/historical':
     'get':
       tags:
         - Course
-      description: Obtiene los cursos (que NO estan CANCELADOS o BLOQUEADOS)
+      description: Obtiene el historico de cursos (que NO estan CANCELADOS o BLOQUEADOS). En esta lista figuran los cursos approved, failed y on course
       parameters:
         - in: header
           name: x-access-token
@@ -475,7 +495,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/favCourses'
+                $ref: '#/components/schemas/historical'
+        '204':
+          description: No content
+        '400':
+          description: Bad Request
+
+  '/courses/collaborations':
+    'get':
+      tags:
+        - Course
+      description: Obtiene todos los cursos (que NO estan CANCELADOS o BLOQUEADOS) en los cuales soy colaborador
+      parameters:
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido de usuario
+      responses:
+        '200':
+          description: Todo okay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/collaborations'
+        '204':
+          description: No content
         '400':
           description: Bad Request
 
@@ -713,3 +757,18 @@ components:
         favCourses:
           type: array
           description: Es un array en el cual cada elemento contiene TODA la informacion de un curso faveado
+
+    historical:
+      type: object
+      properties:
+        historical:
+          type: array
+          description: Es un array en el cual cada elemento contiene TODA la informacion de un curso que aprobe, desaprobe o estoy realizando
+
+    collaborations:
+      type: object
+      properties:
+        collaborations:
+          type: array
+          description: Es un array en el cual cada elemento contiene TODA la informacion de un curso en el cual soy colaborador
+

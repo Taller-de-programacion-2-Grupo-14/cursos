@@ -57,6 +57,8 @@ class DB:
         return course[0]
 
     def getCourses(self, courseFilters):
+        # ToDo: Mostrar los cursos que estan on course
+        # En el historico haces esto
         query = self._buildQuery("courses", filters=courseFilters)
         return self._parseResult(self.session.execute(text(query)))
 
@@ -186,7 +188,7 @@ class DB:
         if operation == "DELETE":
             return f"{operation} FROM {tableName} {filtersQuery}"
         if operation == "UPDATE":
-            return f"{operation} {tableName} SET {', '.join(columns)} {filtersQuery}"
+            return f"{operation} {tableName} SET {', '.join(columns + ['updated_on = now()'])} {filtersQuery}"
         if operation == "INSERT":
             return f"{operation} INTO {tableName} VALUES({', '.join(columns)})"
 
