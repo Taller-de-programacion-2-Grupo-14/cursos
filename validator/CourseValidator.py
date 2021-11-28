@@ -107,4 +107,3 @@ class CourseValidator:
     def raiseExceptionIfCourseIsNotLiked(self, courseId, userId):
         if courseId not in self.db.getCoursesLikedBy(userId):
             raise CourseIsNotLiked
-

@@ -4,14 +4,19 @@ from models.courses import Courses
 from models.collaborators import Collaborators
 from models.enrolled import Enrolled
 from models.favoriteCourses import FavoriteCourses
-from datetime import datetime
 import re
 
 DEFAULT_OFFSET = 0
 DEFAULT_LIMIT = 500
 EDITABLE_FIELDS = ["name", "description", "location", "hashtags"]
-SKIP_FILTERS = ["offset", "limit", "creator_first_name",
-                "creator_last_name", "first_name", "last_name"]
+SKIP_FILTERS = [
+    "offset",
+    "limit",
+    "creator_first_name",
+    "creator_last_name",
+    "first_name",
+    "last_name",
+]
 
 
 class DB:
@@ -37,7 +42,7 @@ class DB:
             hashtags=hashtags,
             location=location,
             cancelled=0,
-            blocked=False
+            blocked=False,
         )
         self.session.add(c)
         self.session.commit()
@@ -131,12 +136,16 @@ class DB:
         return self._parseResult(self.session.execute(text(query)))
 
     def blockCourse(self, courseId: int):
-        query = self._buildQuery("courses", "UPDATE", ["blocked = true"], filters={"id": courseId})
+        query = self._buildQuery(
+            "courses", "UPDATE", ["blocked = true"], filters={"id": courseId}
+        )
         self.session.execute(text(query))
         self.session.commit()
 
     def unblockCourse(self, courseId: int):
-        query = self._buildQuery("courses", "UPDATE", ["blocked = false"], filters={"id": courseId})
+        query = self._buildQuery(
+            "courses", "UPDATE", ["blocked = false"], filters={"id": courseId}
+        )
         self.session.execute(text(query))
         self.session.commit()
 
@@ -152,12 +161,18 @@ class DB:
         return self._parseResult(self.session.execute(text(query)))
 
     def removeFavoriteCourse(self, courseId, userId):
-        query = self._buildQuery("favoritecourses", "DELETE", filters={"course_id": courseId, "user_id": userId})
+        query = self._buildQuery(
+            "favoritecourses",
+            "DELETE",
+            filters={"course_id": courseId, "user_id": userId},
+        )
         self.session.execute(text(query))
         self.session.commit()
 
     def getCoursesLikedBy(self, userId):
-        query = self._buildQuery("favoriteCourses", columns=["course_id"], filters={"user_id": userId})
+        query = self._buildQuery(
+            "favoriteCourses", columns=["course_id"], filters={"user_id": userId}
+        )
         return {record.course_id for record in self.session.execute(text(query))}
 
     def _buildQuery(self, tableName, operation="SELECT", columns=None, filters=None):

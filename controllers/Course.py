@@ -15,7 +15,9 @@ class CourseController:
         return {"message": course, "status": status.HTTP_200_OK}
 
     def handleGetCourses(self, userId, courseFilters):
-        return self._getListCoursesResponse(self.service.getCourses(userId, courseFilters))
+        return self._getListCoursesResponse(
+            self.service.getCourses(userId, courseFilters)
+        )
 
     def handleDelete(self, courseId, userId):
         self.service.deleteCourse(courseId, userId)
@@ -51,7 +53,9 @@ class CourseController:
         return self._getListCoursesResponse(self.service.getMySubscriptions(userId))
 
     def handleGetCourseUsers(self, courseId, userId, usersFilters):
-        return self._getListCoursesResponse(self.service.getUsers(courseId, userId, usersFilters))
+        return self._getListCoursesResponse(
+            self.service.getUsers(courseId, userId, usersFilters)
+        )
 
     def handleBlockCourse(self, courseId, userId):
         self.service.blockCourse(courseId, userId)
@@ -63,14 +67,20 @@ class CourseController:
 
     def handleAddFavoriteCourse(self, favCourse):
         self.service.addFavoriteCourse(favCourse)
-        return {"message": "Course added correctly to your Favorites", "status": status.HTTP_200_OK}
+        return {
+            "message": "Course added correctly to your Favorites",
+            "status": status.HTTP_200_OK,
+        }
 
     def handleGetFavoriteCourses(self, userId):
         return self._getListCoursesResponse(self.service.getFavoriteCourses(userId))
 
     def handleRemoveFavoriteCourse(self, removeFavCourse):
         self.service.removeFavoriteCourse(removeFavCourse)
-        return {"message": "Course removed correctly from your Favorites", "status": status.HTTP_200_OK}
+        return {
+            "message": "Course removed correctly from your Favorites",
+            "status": status.HTTP_200_OK,
+        }
 
     def _getListCoursesResponse(self, coursesList):
         return {"message": coursesList, "status": self._getCorrectStatus(coursesList)}
