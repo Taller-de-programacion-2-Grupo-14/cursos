@@ -59,7 +59,7 @@ def addCollaborator(collaborator: CollaboratorSchema):
     return courseController.handleAddCollaborator(collaborator.dict())
 
 
-@app.delete("/courses/remove_collaborator")
+@app.delete("/courses/collaborators/remove")
 def removeCollaborator(collaborator: RemoveCollaboratorSchema):
     return courseController.handleRemoveCollaborator(collaborator.dict())
 
@@ -115,7 +115,7 @@ def getFavorites(user: UserSchema):
     return courseController.handleGetFavoriteCourses(user.user_id)
 
 
-@app.delete("/courses/favorites")
+@app.delete("/courses/favorites/remove")
 def removeFavorite(removeFavCourse: FavCourseSchema):
     return courseController.handleRemoveFavoriteCourse(removeFavCourse.dict())
 

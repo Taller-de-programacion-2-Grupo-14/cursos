@@ -207,7 +207,7 @@ paths:
         '404':
           description: El curso no existe
 
-  '/courses/remove_collaborator':
+  '/courses/collaborators/remove':
     'delete':
       tags:
         - Course
@@ -433,6 +433,7 @@ paths:
         '404':
           description: Course not found
 
+  '/courses/favorites/remove':
     'delete':
       tags:
         - Course

@@ -24,11 +24,11 @@ create table enrolled(
     primary key(id_course, id_student)
 );
 
-create table colaborators(
-    id_colaborator int not null,
+create table collaborators(
+    id_collaborator int not null,
     id_course int not null,
     foreign key(id_course) references courses(id) on delete cascade,
-    primary key(id_course, id_colaborator)
+    primary key(id_course, id_collaborator)
 );
 
 create table favoriteCourses(
@@ -36,4 +36,4 @@ create table favoriteCourses(
     user_id int not null,
     foreign key (course_id) references courses(id) on delete cascade,
     primary key (course_id, user_id)
-)
+);
