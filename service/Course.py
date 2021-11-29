@@ -222,13 +222,13 @@ class CourseService:
 
     def _filterUserByName(self, filters, user, prefix=""):
         if (
-                filters.get(prefix + "first_name", "")
-                and filters[prefix + "first_name"] != user["first_name"]
+            filters.get(prefix + "first_name", "")
+            and filters[prefix + "first_name"] != user["first_name"]
         ):
             return True
         if (
-                filters.get(prefix + "last_name", "")
-                and filters[prefix + "last_name"] != user["last_name"]
+            filters.get(prefix + "last_name", "")
+            and filters[prefix + "last_name"] != user["last_name"]
         ):
             return True
         return False

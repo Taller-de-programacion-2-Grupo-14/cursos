@@ -15,6 +15,6 @@ class Courses(Base):
     hashtags = Column(String(1000))
     location = Column(String(255))
     cancelled = Column(Integer)
-    created_on = Column(DateTime(), default=datetime.now)
-    updated_on = Column(DateTime(), default=datetime.now, onupdate=datetime.now)
+    created_at = Column(DateTime(), default=datetime.now)
+    updated_at = Column(DateTime(), default=datetime.now, onupdate=datetime.now)
     blocked = Column(Boolean(), default=False)

@@ -9,8 +9,8 @@ create table courses(
     hashtags varchar(1000) default (''),
     location varchar(255) not null,
     cancelled int not null,
-    created_on timestamp default (now()),
-    updated_on timestamp default (now()),
+    created_at timestamp default (now()),
+    updated_at timestamp default (now()),
     blocked boolean default (false),
     primary key(id),
     unique (name, creator_id)

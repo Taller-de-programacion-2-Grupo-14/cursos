@@ -609,10 +609,10 @@ components:
         blocked:
           type: boolean
           example: false
-        created_on:
+        created_at:
           type: string
           example: 'timestamp, swagger no tiene'
-        updated_on:
+        updated_at:
           type: string
           example: 'timestamp, swagger no tiene'
 
@@ -687,10 +687,10 @@ components:
         blocked:
           type: boolean
           example: false
-        created_on:
+        created_at:
           type: string
           example: 'timestamp, swagger no tiene'
-        updated_on:
+        updated_at:
           type: string
           example: 'timestamp, swagger no tiene'
 

@@ -189,7 +189,7 @@ class DB:
             return f"{operation} FROM {tableName} {filtersQuery}"
         if operation == "UPDATE":
             return (
-                f"{operation} {tableName} SET {', '.join(columns +['updated_on = now()'])}"
+                f"{operation} {tableName} SET {', '.join(columns +['updated_at = now()'])}"
                 f" {filtersQuery}"
             )
         if operation == "INSERT":
