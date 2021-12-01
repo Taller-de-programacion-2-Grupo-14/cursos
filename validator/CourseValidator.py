@@ -54,6 +54,9 @@ class CourseValidator:
         course = self.db.getCourse(courseId)
         return course["blocked"]
 
+    def isAvailable(self, courseData: dict):
+        return not (courseData["blocked"] or courseData["cancelled"])
+
     def hasCorrectSubscriptionType(
         self, courseSubscription: str, userSubscription: str
     ):
@@ -61,8 +64,14 @@ class CourseValidator:
             userSubscription.lower(), -1
         ) >= COURSE_SUBSCRIPTION.get(courseSubscription.lower(), -1)
 
-    def canViewCourse(self, courseData, userId):
-        return not (courseData["cancelled"] and courseData["creator_id"] != userId)
+    def canViewCourse(self, courseData, userData):
+        if userData["is_admin"]:
+            return True
+        if courseData["blocked"]:
+            return False
+        return not (
+            courseData["cancelled"] and courseData["creator_id"] != userData["user_id"]
+        )
 
     def raiseExceptionIfCourseDoesNotExists(self, courseId: int):
         if not self.courseExists(courseId):
@@ -95,7 +104,6 @@ class CourseValidator:
         if userData.get("blocked", False):
             raise UserBlocked
 
-    # ToDo: completar metodos
     def raiseExceptionIfIsNotAdmin(self, userData):
         if not userData.get("is_admin", False):
             raise InvalidUserAction

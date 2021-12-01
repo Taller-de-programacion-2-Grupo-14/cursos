@@ -8,7 +8,7 @@ create table courses(
     description varchar(1500) not null,
     hashtags varchar(1000) default (''),
     location varchar(255) not null,
-    cancelled int not null,
+    cancelled int default (0),
     created_at timestamp default (now()),
     updated_at timestamp default (now()),
     blocked boolean default (false),
