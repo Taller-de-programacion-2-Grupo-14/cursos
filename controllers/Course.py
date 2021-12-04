@@ -1,10 +1,12 @@
 from fastapi import status
 from service.Course import CourseService
+from notifications.NotificationManager import NotificationManager
 
 
 class CourseController:
     def __init__(self, courseService: CourseService):
         self.service = courseService
+        self.notification = NotificationManager()
 
     def handleCreate(self, course_create_data):
         self.service.addCourse(course_create_data)
@@ -87,3 +89,7 @@ class CourseController:
 
     def _getCorrectStatus(self, array):
         return status.HTTP_200_OK if len(array) else status.HTTP_204_NO_CONTENT
+
+    def handleSendCollaborationRequest(self, collaborationRequest):
+        response = self.notification.sendNotification(collaborationRequest)
+        return {"message": f"message {response} sent correctly", "status": status.HTTP_200_OK}

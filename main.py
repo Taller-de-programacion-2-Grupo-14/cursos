@@ -120,6 +120,11 @@ def removeFavorite(removeFavCourse: FavCourseSchema):
     return courseController.handleRemoveFavoriteCourse(removeFavCourse.dict())
 
 
+@app.post("/courses/collaborators/send_request")
+def sendNotification(collaborationRequest: CollaborationRequest):
+    return courseController.handleSendCollaborationRequest(collaborationRequest.dict())
+
+
 @app.get("/doc-yml")
 def getSwagger():
     with open("docs/swagger.yaml") as f:
