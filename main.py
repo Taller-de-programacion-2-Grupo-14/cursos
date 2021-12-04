@@ -12,6 +12,7 @@ from exceptions.CourseException import CourseException
 from queryParams.QueryParams import *
 from sqlalchemy import create_engine
 import yaml
+
 # import uvicorn  # For debugging
 
 dbUrl = os.environ.get("DATABASE_URL")

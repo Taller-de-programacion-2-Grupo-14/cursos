@@ -15,7 +15,9 @@ class Users:
     def getBatchUsers(self, userIds: list):
         if not userIds:
             return {}
-        response = requests.get(f"{self.host}users/batch?ids={','.join(map(str, userIds))}")
+        response = requests.get(
+            f"{self.host}users/batch?ids={','.join(map(str, userIds))}"
+        )
         # response = requests.get(
         #     f"https://ubademy-14-prod.herokuapp.com/users/batch?ids={','.join(map(str, userIds))}"
         # ) # For debugging
