@@ -23,24 +23,25 @@ class CourseService:
         course = self.db.getCourse(courseId)
         if course is None:
             raise CourseDoesNotExist
-        if not self.courseValidator.canViewCourse(course, userId):
+        usersData = self._getUsersData(course, userId)
+        actualUserData = usersData[userId]
+        if not self.courseValidator.canViewCourse(course, actualUserData):
             raise CourseDoesNotExist
-        creatorData = self.getUserData(course["creator_id"])
-        self._addExtraData(course, creatorData, userId)
+        self._addExtraData(course, usersData[course["creator_id"]], actualUserData)
         return course
 
     def getCourses(self, userId, courseFilters):
         courses = self.db.getCourses(courseFilters)
         result = []
-        creatorsData = self._getCreatorsData(courses)
+        usersData = self._getUsersData(courses, userId)
+        actualUserData = usersData[userId]
         for course in courses:
-            # ToDo: mostramos los cancelados por mas que seas el creador aca o no?
-            if not self.courseValidator.canViewCourse(course, userId):
+            if not self.courseValidator.canViewCourse(course, actualUserData):
                 continue
-            creatorData = creatorsData[course["creator_id"]]
+            creatorData = usersData[course["creator_id"]]
             if self._filterUserByName(courseFilters, creatorData, prefix="creator_"):
                 continue
-            self._addExtraData(course, creatorData, userId)
+            self._addExtraData(course, creatorData, actualUserData)
             result.append(course)
         return result
 
@@ -110,10 +111,12 @@ class CourseService:
     def getMySubscriptions(self, userId):
         mySubscriptions = self.db.getMySubscriptions(userId)
         result = []
-        creatorsData = self._getCreatorsData(mySubscriptions)
+        usersData = self._getUsersData(mySubscriptions, userId)
+        actualUserData = usersData[userId]
         for course in mySubscriptions:
-            creatorData = creatorsData[course["creator_id"]]
-            self._addExtraData(course, creatorData, userId)
+            if course["blocked"] or course["cancelled"]:
+                continue
+            self._addExtraData(course, usersData[course["creator_id"]], actualUserData)
             result.append(course)
         return result
 
@@ -158,10 +161,10 @@ class CourseService:
     def getFavoriteCourses(self, userId):
         favCourses = self.db.getFavoriteCourses(userId)
         result = []
-        creatorsData = self._getCreatorsData(favCourses)
+        usersData = self._getUsersData(favCourses, userId)
+        actualUserData = usersData[userId]
         for course in favCourses:
-            creatorData = creatorsData[course["creator_id"]]
-            self._addExtraData(course, creatorData, userId)
+            self._addExtraData(course, usersData[course["creator_id"]], actualUserData)
             result.append(course)
         return result
 
@@ -173,28 +176,42 @@ class CourseService:
         self.db.removeFavoriteCourse(courseId, userId)
 
     # Auxiliary Functions
-    def _addExtraData(self, courseData: dict, creatorData: dict, userId: int):
-        if creatorData.get("user_id", 0) != userId:
-            userData = self.getUserData(userId)
-        else:
-            userData = creatorData
+    def _addExtraData(self, courseData: dict, creatorData: dict, userData: dict):
         courseData["creator_first_name"] = creatorData["first_name"]
         courseData["creator_last_name"] = creatorData["last_name"]
-        courseData["can_edit"] = userId == courseData["creator_id"]
-        courseData["can_subscribe"] = (
-            not self.courseValidator.isCancelled(courseData)
+        courseData["can_edit"] = userData["user_id"] == courseData["creator_id"]
+        courseData["can_subscribe"] = self._canSubscribe(courseData, userData)
+        courseData["can_collaborate"] = self._canCollaborate(courseData, userData)
+        courseData["is_subscribed"] = self.courseValidator.isSubscribed(
+            courseData["id"], userData["user_id"]
+        )
+
+    def _canEdit(self, courseData: dict, userData: dict):
+        return (
+            not userData["is_admin"]
+            and not courseData["blocked"]
+            and userData["user_id"] == courseData["creator_id"]
+        )
+
+    def _canSubscribe(self, courseData: dict, userData: dict):
+        return (
+            not userData["is_admin"]
+            and self.courseValidator.isAvailable(courseData)
             and not courseData["can_edit"]
             and self.courseValidator.canSubscribe(courseData["id"], userData)
         )
-        courseData["can_collaborate"] = not self.courseValidator.isCancelled(
-            courseData
-        ) and (
-            not courseData["can_edit"]
-            or self.courseValidator.canCollaborate(courseData["id"], userData)
+
+    def _canCollaborate(self, courseData: dict, userData: dict):
+        return (
+            not userData["is_admin"]
+            and self.courseValidator.isAvailable(courseData)
+            and not courseData["can_edit"]
+            and self.courseValidator.canCollaborate(courseData["id"], userData)
         )
 
-    def _getCreatorsData(self, courses):
-        ids = set()
+    def _getUsersData(self, courses: dict, userId: int):
+        # ToDo: rename this function
+        ids = {userId}
         for course in courses:
             ids.add(course["creator_id"])
         result = self.getUsersData(list(ids))
@@ -222,13 +239,13 @@ class CourseService:
 
     def _filterUserByName(self, filters, user, prefix=""):
         if (
-                filters.get(prefix + "first_name", "")
-                and filters[prefix + "first_name"] != user["first_name"]
+            filters.get(prefix + "first_name", "")
+            and filters[prefix + "first_name"] != user["first_name"]
         ):
             return True
         if (
-                filters.get(prefix + "last_name", "")
-                and filters[prefix + "last_name"] != user["last_name"]
+            filters.get(prefix + "last_name", "")
+            and filters[prefix + "last_name"] != user["last_name"]
         ):
             return True
         return False

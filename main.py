@@ -1,5 +1,4 @@
 import os
-import uvicorn  # ToDo Before merge delete this
 from fastapi import FastAPI, Request, status, Depends
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -13,6 +12,8 @@ from exceptions.CourseException import CourseException
 from queryParams.QueryParams import *
 from sqlalchemy import create_engine
 import yaml
+
+# import uvicorn  # For debugging
 
 dbUrl = os.environ.get("DATABASE_URL")
 if not dbUrl.startswith("postgresql"):
@@ -106,7 +107,7 @@ def unblockCourse(courseId: int, user: UserSchema):
 
 
 @app.post("/courses/favorites")
-def favCourse(favCourse: FavCourseSchema):
+def addFavoriteCourse(favCourse: FavCourseSchema):
     return courseController.handleAddFavoriteCourse(favCourse.dict())
 
 
@@ -179,6 +180,6 @@ def handleUnknownException(request: Request, exc: Exception):
     )
 
 
-# ToDo Before merge delete this
-if __name__ == "__main__":
-    uvicorn.run(app, port=8000)
+# For debugging
+# if __name__ == "__main__":
+#     uvicorn.run(app, port=8000)
