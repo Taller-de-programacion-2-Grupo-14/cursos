@@ -1,4 +1,7 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
+from exceptions.CourseException import InvalidSubscriptionType
+
+SUBSCRIPTION_TYPES = ["basico", "estandar", "premium"]
 
 
 class CreateCourseSchema(BaseModel):
@@ -10,6 +13,13 @@ class CreateCourseSchema(BaseModel):
     subscription: str
     location: str = Field(min_length=3, max_length=255)
     user_id: int
+
+    @validator("subscription")
+    def validSubscriptionType(cls, subscription):
+        subscription = subscription.lower()
+        if subscription not in SUBSCRIPTION_TYPES:
+            raise InvalidSubscriptionType(SUBSCRIPTION_TYPES)
+        return subscription
 
 
 class DeleteCourseSchema(BaseModel):
@@ -38,3 +48,8 @@ class RemoveCollaboratorSchema(BaseModel):
 
 class UserSchema(BaseModel):
     user_id: int
+
+
+class FavCourseSchema(BaseModel):
+    user_id: int
+    id: int

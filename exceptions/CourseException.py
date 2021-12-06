@@ -9,34 +9,35 @@ class CourseException(Exception):
 
 class CourseAlreadyExists(CourseException):
     def __init__(self, courseName):
-        self.status_code = status.HTTP_400_BAD_REQUEST
-        self.message = f"Course '{courseName}' already exists"
+        super().__init__(
+            status.HTTP_400_BAD_REQUEST, f"Course '{courseName}' already exists"
+        )
 
 
 class CourseDoesNotExist(CourseException):
     def __init__(self):
-        self.status_code = status.HTTP_404_NOT_FOUND
-        self.message = "Course does not exist"
+        super().__init__(status.HTTP_404_NOT_FOUND, "Course does not exist")
 
 
 class InvalidUserAction(CourseException):
     def __init__(self):
-        self.status_code = status.HTTP_401_UNAUTHORIZED
-        self.message = "Invalid user action"
+        super().__init__(status.HTTP_401_UNAUTHORIZED, "Invalid user action")
 
 
 class IsAlreadyACollaborator(CourseException):
-    def __init__(self, courseName):
-        self.status_code = status.HTTP_208_ALREADY_REPORTED
-        self.message = (
-            f"The user is already a collaborator of the course '{courseName}'"
+    def __init__(self):
+        super().__init__(
+            status.HTTP_208_ALREADY_REPORTED,
+            "The user is already a collaborator of the course",
         )
 
 
 class IsNotACollaborator(CourseException):
     def __init__(self, courseName):
-        self.status_code = status.HTTP_404_NOT_FOUND
-        self.message = f"The user is not a collaborator of the course '{courseName}'"
+        super().__init__(
+            status.HTTP_404_NOT_FOUND,
+            f"The user is not a collaborator of the course '{courseName}'",
+        )
 
 
 class UserNotFound(CourseException):
@@ -62,5 +63,54 @@ class SubscriptionInvalid(CourseException):
     def __init__(self):
         super().__init__(
             status.HTTP_403_FORBIDDEN,
-            "You should upgrade your membership to enrole this course",
+            "You should upgrade your membership to enroll this course",
+        )
+
+
+class UserBlocked(CourseException):
+    def __init__(self):
+        super().__init__(
+            status.HTTP_401_UNAUTHORIZED,
+            "Your account is blocked",
+        )
+
+
+class InvalidSubscriptionType(CourseException):
+    def __init__(self, subscriptionTypes):
+        super().__init__(
+            status.HTTP_400_BAD_REQUEST,
+            f"The subscription must be of one of the "
+            f"following types: {', '.join(subscriptionTypes)} ",
+        )
+
+
+class CourseIsAlreadyBlocked(CourseException):
+    def __init__(self):
+        super().__init__(
+            status.HTTP_208_ALREADY_REPORTED,
+            "The course is already blocked",
+        )
+
+
+class CourseIsNotBlocked(CourseException):
+    def __init__(self):
+        super().__init__(
+            status.HTTP_208_ALREADY_REPORTED,
+            "The course is not blocked",
+        )
+
+
+class CourseIsAlreadyLiked(CourseException):
+    def __init__(self):
+        super().__init__(
+            status.HTTP_208_ALREADY_REPORTED,
+            "The course is already liked",
+        )
+
+
+class CourseIsNotLiked(CourseException):
+    def __init__(self):
+        super().__init__(
+            status.HTTP_208_ALREADY_REPORTED,
+            "The course is not liked",
         )
