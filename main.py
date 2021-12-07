@@ -12,8 +12,7 @@ from exceptions.CourseException import CourseException
 from queryParams.QueryParams import *
 from sqlalchemy import create_engine
 import yaml
-
-# import uvicorn  # For debugging
+import uvicorn  # For debugging
 
 dbUrl = os.environ.get("DATABASE_URL")
 if not dbUrl.startswith("postgresql"):
@@ -63,6 +62,11 @@ def addCollaborator(collaborator: CollaboratorSchema):
 @app.delete("/courses/collaborators/remove")
 def removeCollaborator(collaborator: RemoveCollaboratorSchema):
     return courseController.handleRemoveCollaborator(collaborator.dict())
+
+
+@app.post("/courses/collaborators/send_request")
+def sendCollaborationRequest(collaborationRequest: CollaborationRequest):
+    return courseController.handleSendCollaborationRequest(collaborationRequest.dict())
 
 
 @app.post("/courses/subscription/{courseId}")
@@ -121,11 +125,6 @@ def removeFavorite(removeFavCourse: FavCourseSchema):
     return courseController.handleRemoveFavoriteCourse(removeFavCourse.dict())
 
 
-@app.post("/courses/collaborators/send_request")
-def sendNotification(collaborationRequest: CollaborationRequest):
-    return courseController.handleSendCollaborationRequest(collaborationRequest.dict())
-
-
 @app.get("/doc-yml")
 def getSwagger():
     with open("docs/swagger.yaml") as f:
@@ -181,5 +180,5 @@ def handleUnknownException(request: Request, exc: Exception):
 
 
 # For debugging
-# if __name__ == "__main__":
-#     uvicorn.run(app, port=8000)
+if __name__ == "__main__":
+    uvicorn.run(app, port=8000)

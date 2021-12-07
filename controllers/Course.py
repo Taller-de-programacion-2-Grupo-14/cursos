@@ -40,6 +40,10 @@ class CourseController:
             "status": status.HTTP_200_OK,
         }
 
+    def handleSendCollaborationRequest(self, collaborationRequest):
+        response = self.notification.sendNotification(collaborationRequest)
+        return {"message": f"message {response} sent correctly", "status": status.HTTP_200_OK}
+
     def handleAddSubscriber(self, courseId, subscriberId):
         self.service.addSubscriber(courseId, subscriberId)
         return {"message": "Successful subscription", "status": status.HTTP_200_OK}
@@ -89,7 +93,3 @@ class CourseController:
 
     def _getCorrectStatus(self, array):
         return status.HTTP_200_OK if len(array) else status.HTTP_204_NO_CONTENT
-
-    def handleSendCollaborationRequest(self, collaborationRequest):
-        response = self.notification.sendNotification(collaborationRequest)
-        return {"message": f"message {response} sent correctly", "status": status.HTTP_200_OK}
