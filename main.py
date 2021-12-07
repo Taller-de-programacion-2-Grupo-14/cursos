@@ -13,6 +13,8 @@ from queryParams.QueryParams import *
 from sqlalchemy import create_engine
 import yaml
 
+# import uvicorn  # For debugging
+
 dbUrl = os.environ.get("DATABASE_URL")
 if not dbUrl.startswith("postgresql"):
     dbUrl = dbUrl.replace("postgres", "postgresql", 1)
@@ -50,7 +52,7 @@ def editCourse(courseId: int, courseNewInfo: EditCourseInfoSchema):
 
 @app.delete("/courses/{courseId}")
 def deleteCourse(courseId: int, user: UserSchema):
-    return courseController.handleDelete(courseId, user)
+    return courseController.handleDelete(courseId, user.user_id)
 
 
 @app.post("/courses/collaborators")
@@ -58,7 +60,7 @@ def addCollaborator(collaborator: CollaboratorSchema):
     return courseController.handleAddCollaborator(collaborator.dict())
 
 
-@app.delete("/courses/collaborators")
+@app.delete("/courses/collaborators/remove")
 def removeCollaborator(collaborator: RemoveCollaboratorSchema):
     return courseController.handleRemoveCollaborator(collaborator.dict())
 
@@ -92,6 +94,31 @@ def getCourseUsers(
     return courseController.handleGetCourseUsers(
         courseId, user.user_id, usersFilters.getFilters()
     )
+
+
+@app.delete("/courses/block/{courseId}")
+def blockCourse(courseId: int, user: UserSchema):
+    return courseController.handleBlockCourse(courseId, user.user_id)
+
+
+@app.post("/courses/unblock/{courseId}")
+def unblockCourse(courseId: int, user: UserSchema):
+    return courseController.handleUnblockCourse(courseId, user.user_id)
+
+
+@app.post("/courses/favorites")
+def addFavoriteCourse(favCourse: FavCourseSchema):
+    return courseController.handleAddFavoriteCourse(favCourse.dict())
+
+
+@app.get("/courses/favorites")
+def getFavorites(user: UserSchema):
+    return courseController.handleGetFavoriteCourses(user.user_id)
+
+
+@app.delete("/courses/favorites/remove")
+def removeFavorite(removeFavCourse: FavCourseSchema):
+    return courseController.handleRemoveFavoriteCourse(removeFavCourse.dict())
 
 
 @app.get("/doc-yml")
@@ -146,3 +173,8 @@ def handleUnknownException(request: Request, exc: Exception):
             }
         ),
     )
+
+
+# For debugging
+# if __name__ == "__main__":
+#     uvicorn.run(app, port=8000)

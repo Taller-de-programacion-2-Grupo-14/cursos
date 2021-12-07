@@ -1,8 +1,22 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from models.courses import Courses
-from models.colaborators import Colaborators
+from models.collaborators import Collaborators
 from models.enrolled import Enrolled
+from models.favoriteCourses import FavoriteCourses
+import re
+
+DEFAULT_OFFSET = 0
+DEFAULT_LIMIT = 500
+EDITABLE_FIELDS = ["name", "description", "location", "hashtags"]
+SKIP_FILTERS = [
+    "offset",
+    "limit",
+    "creator_first_name",
+    "creator_last_name",
+    "first_name",
+    "last_name",
+]
 
 
 class DB:
@@ -28,99 +42,68 @@ class DB:
             hashtags=hashtags,
             location=location,
             cancelled=0,
+            blocked=False,
         )
         self.session.add(c)
         self.session.commit()
 
     def getCourse(self, courseId):
-        course = self.session.query(Courses).get(courseId)
+        query = self._buildQuery("courses", filters={"id": courseId})
+        course = self._parseResult(
+            self.session.execute(text(query))
+        )  # In this way we get an array of dicts
         if not course:
             return None
-        dic_course = {
-            "name": course.name,
-            "exams": course.exams,
-            "creator_id": course.creator_id,
-            "type": course.type,
-            "subscription": course.subscription,
-            "description": course.description,
-            "hashtags": course.hashtags,
-            "location": course.location,
-            "cancelled": course.cancelled,
-        }
-        return dic_course
+        return course[0]
 
     def getCourses(self, courseFilters):
-        offset = courseFilters["offset"]
-        limit = courseFilters["limit"]
-        where_clause = "WHERE cancelled = 0"
-        filters = courseFilters["filters"]
-        endings = f"OFFSET {offset} LIMIT {limit}"
-        if filters:
-            where_clause += " AND "
-            for k, v in filters.items():
-                if k == "offset" or k == "limit":
-                    pass
-                if k == "freeText":
-                    free_text = filters["freeText"]
-                    filter = f" (name LIKE '%{free_text}%' OR \
-                                    description LIKE '%{free_text}%') "
-                elif type(v) == int:
-                    filter = f"{k} = {v}"
-                else:
-                    filter = f"{k} LIKE '%{v}%'"
-                if where_clause != "WHERE cancelled = 0 AND ":
-                    where_clause += " AND "
-                where_clause += filter
-        query = f"SELECT * FROM courses {where_clause} {endings}"
-        result = self.session.execute(text(query))
-        courses = self.parse_result(result)
-        return courses
+        # ToDo: Mostrar los cursos que estan on course
+        # En el historico haces esto
+        query = self._buildQuery("courses", filters=courseFilters)
+        return self._parseResult(self.session.execute(text(query)))
 
-    def deleteCourse(self, deleteCourse):
-        id = deleteCourse["id"]
-        course = self.session.query(Courses).get(id)
-        course.cancelled = 1
+    def deleteCourse(self, courseId):
+        query = self._buildQuery(
+            "courses", "UPDATE", ["cancelled = 1"], filters={"id": courseId}
+        )
+        self.session.execute(text(query))
         self.session.commit()
 
     def editCourse(self, courseNewInfo):
-        id = courseNewInfo["id"]
-        course = self.session.query(Courses).get(id)
-        if "name" in courseNewInfo:
-            course.name = courseNewInfo["name"]
-        if "type" in courseNewInfo:
-            course.type = courseNewInfo["type"]
-        if "location" in courseNewInfo:
-            course.location = courseNewInfo["location"]
-        if "description" in courseNewInfo:
-            course.description = courseNewInfo["description"]
-        if "hashtags" in courseNewInfo:
-            course.hashtags = courseNewInfo["hashtags"]
+        columns = [
+            f"{column} = '{newValue}'"
+            for column, newValue in courseNewInfo.items()
+            if column in EDITABLE_FIELDS
+        ]
+        query = self._buildQuery(
+            "courses", "UPDATE", columns, filters={"id": courseNewInfo["id"]}
+        )
+        self.session.execute(text(query))
         self.session.commit()
 
     def addCollaborator(self, collaborator):
-        new_colab = Colaborators(
-            id_colaborator=collaborator["user_id"], id_course=collaborator["id"]
+        new_colab = Collaborators(
+            id_collaborator=collaborator["user_id"], id_course=collaborator["id"]
         )
         self.session.add(new_colab)
         self.session.commit()
 
     def removeCollaborator(self, collaborator):
-        colab = self.session.query(Colaborators).get(
-            (collaborator["user_to_remove"], collaborator["id"])
-        )
-        self.session.delete(colab)
+        filters = {
+            "id_course": collaborator["id"],
+            "id_collaborator": collaborator["user_to_remove"],
+        }
+        query = self._buildQuery("collaborators", "DELETE", filters=filters)
+        self.session.execute(text(query))
         self.session.commit()
 
-    def getCourseCollaborators(self, courseId):
-        colabs_course = self.session.query(Colaborators).filter(
-            Colaborators.id_course == courseId
+    def getCourseUsers(self, courseId, getSubscribers=True):
+        table = "enrolled" if getSubscribers else "collaborators"
+        column = "id_student" if getSubscribers else "id_collaborator"
+        query = self._buildQuery(
+            table, columns=[column], filters={"id_course": courseId}
         )
-        colaborators = []
-        if not colabs_course.first():
-            return colaborators
-        for c in colabs_course:
-            colaborators.append(c.id_colaborator)
-        return colaborators
+        return {record.id_collaborator for record in self.session.execute(text(query))}
 
     def addSubscriber(self, id_course, subscriber_id):
         enrollment = Enrolled(
@@ -130,41 +113,122 @@ class DB:
         self.session.commit()
 
     def removeSubscriber(self, courseId, subscriberId):
-        query = f"DELETE FROM enrolled WHERE id_course = {courseId} \
-                AND id_student = {subscriberId};"
+        filters = {"id_course": courseId, "id_student": subscriberId}
+        query = self._buildQuery("enrolled", "DELETE", filters=filters)
         self.session.execute(text(query))
         self.session.commit()
 
-    def parse_result(self, result):
+    def getMySubscriptions(self, userId):
+        query = f"SELECT * FROM (SELECT id_course AS courseId FROM enrolled WHERE id_student \
+                = {userId}) as studentCourses JOIN courses AS c ON c.id \
+                = studentCourses.courseId"
+        return self._parseResult(self.session.execute(text(query)))
+
+    def getUsers(self, courseId, userFilters):
+        getSubscribers = userFilters["subscribers"]
+        table = "enrolled" if getSubscribers else "collaborators"
+        column = "id_student" if getSubscribers else "id_collaborator"
+        filters = {
+            "id_course": courseId,
+            "offset": userFilters.get("offset", DEFAULT_OFFSET),
+            "limit": userFilters.get("limit", DEFAULT_LIMIT),
+        }
+        query = self._buildQuery(table, columns=[column], filters=filters)
+        self._parseResult(self.session.execute(text(query)))
+        return self._parseResult(self.session.execute(text(query)))
+
+    def blockCourse(self, courseId: int):
+        query = self._buildQuery(
+            "courses", "UPDATE", ["blocked = true"], filters={"id": courseId}
+        )
+        self.session.execute(text(query))
+        self.session.commit()
+
+    def unblockCourse(self, courseId: int):
+        query = self._buildQuery(
+            "courses", "UPDATE", ["blocked = false"], filters={"id": courseId}
+        )
+        self.session.execute(text(query))
+        self.session.commit()
+
+    def addFavoriteCourse(self, courseId, userId):
+        favoriteCourses = FavoriteCourses(course_id=courseId, user_id=userId)
+        self.session.add(favoriteCourses)
+        self.session.commit()
+
+    def getFavoriteCourses(self, userId):
+        query = f"SELECT * FROM (SELECT course_id AS courseId FROM favoriteCourses WHERE user_id \
+                = {userId}) as favCourses JOIN courses AS c ON c.id \
+                = favCourses.courseId"
+        return self._parseResult(self.session.execute(text(query)))
+
+    def removeFavoriteCourse(self, courseId, userId):
+        query = self._buildQuery(
+            "favoritecourses",
+            "DELETE",
+            filters={"course_id": courseId, "user_id": userId},
+        )
+        self.session.execute(text(query))
+        self.session.commit()
+
+    def getCoursesLikedBy(self, userId):
+        query = self._buildQuery(
+            "favoriteCourses", columns=["course_id"], filters={"user_id": userId}
+        )
+        return {record.course_id for record in self.session.execute(text(query))}
+
+    def _buildQuery(self, tableName, operation="SELECT", columns=None, filters=None):
+        operation = operation.upper()
+        if columns is None:
+            columns = ["*"]
+        filtersQuery = self._buildFilterQuery(filters) if filters is not None else ""
+        if operation == "SELECT":
+            return f"{operation} {', '.join(columns)} FROM {tableName} {filtersQuery}"
+        filtersQuery = re.sub(r"(.*)OFFSET.*", r"\1", filtersQuery)
+        if operation == "DELETE":
+            return f"{operation} FROM {tableName} {filtersQuery}"
+        if operation == "UPDATE":
+            return (
+                f"{operation} {tableName} SET {', '.join(columns +['updated_at = now()'])}"
+                f" {filtersQuery}"
+            )
+        if operation == "INSERT":
+            return f"{operation} INTO {tableName} VALUES({', '.join(columns)})"
+
+    def _buildFilterQuery(self, filters):
+        filterQuery = ""
+        for filterName, value in filters.items():
+            if filterName in SKIP_FILTERS:
+                # A dict does not have an order, this instructions must be at the end of the query
+                continue
+            if filterQuery:
+                filterQuery += " AND "
+            else:
+                filterQuery += "WHERE "
+            if filterName == "free_text":
+                filterQuery += (
+                    f"(name LIKE '%{value}%' OR description LIKE '%{value}%')"
+                )
+            elif filterName in {"name", "type", "location", "subscription"}:
+                filterQuery += f"{filterName} LIKE '%{value}%'"
+            else:
+                filterQuery += f"{filterName} = {value}"
+        filterQuery += (
+            f" OFFSET {filters.get('offset', DEFAULT_OFFSET)} "
+            f"LIMIT {filters.get('limit', DEFAULT_LIMIT)}"
+        )
+        return filterQuery
+
+    def _parseResult(self, result):
         courses = []
         if not result:
             return courses
         for r in result:
-            courses.append(r._asdict())
+            if len(r) == 1:
+                courses.append(r[0])
+            else:
+                courses.append(r._asdict())
         return courses
 
-    def getMySubscriptions(self, user_id):
-        query = f"SELECT * FROM (SELECT id_course AS courseId FROM enrolled WHERE id_student \
-                = {user_id}) as studentCourses JOIN courses AS c ON c.id \
-                = studentCourses.courseId"
-        result = self.session.execute(text(query))
-        subscriptions = self.parse_result(result)
-        return subscriptions
-
-    def getUsers(self, courseId, userFilters):
-        getSubscribers = userFilters["filters"]["subscribers"]
-        table = "enrolled" if getSubscribers else "colaborators"
-        userId = "id_student" if getSubscribers else "id_colaborator"
-        offset = userFilters["offset"]
-        limit = userFilters["limit"]
-        query = f"SELECT {userId} FROM {table} WHERE id_course = {courseId} \
-                OFFSET {offset} LIMIT {limit}"
-        result = self.session.execute(text(query))
-        courses = self.parse_result(result)
-        return courses
-
-    def getMyCourses(self, userId):
-        query = f"SELECT * FROM courses WHERE creator_id = {userId}"
-        result = self.session.execute(text(query))
-        courses = self.parse_result(result)
-        return courses
+    def _skipFilter(self, filterName, allowedFilters):
+        return filterName in allowedFilters

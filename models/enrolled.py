@@ -1,4 +1,3 @@
-# from sqlalchemy import CheckConstraint
 from sqlalchemy import Integer, String, Column, ForeignKey, PrimaryKeyConstraint
 from models.database import Base
 
