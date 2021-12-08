@@ -20,6 +20,6 @@ class Users:
         )
         # response = requests.get(
         #     f"https://ubademy-14-prod.herokuapp.com/users/batch?ids={','.join(map(str, userIds))}"
-        # ) # For debugging
+        # )  # For debugging
         response.raise_for_status()
         return response.json()

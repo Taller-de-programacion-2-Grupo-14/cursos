@@ -107,9 +107,9 @@ class CourseValidator:
             raise InvalidUserAction
 
     def raiseExceptionIfCourseIsAlreadyLiked(self, courseId, userId):
-        if courseId in self.db.getCoursesLikedBy(userId):
+        if courseId in self.db.getCourseIdsLikedBy(userId):
             raise CourseIsAlreadyLiked
 
     def raiseExceptionIfCourseIsNotLiked(self, courseId, userId):
-        if courseId not in self.db.getCoursesLikedBy(userId):
+        if courseId not in self.db.getCourseIdsLikedBy(userId):
             raise CourseIsNotLiked
