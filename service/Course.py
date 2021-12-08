@@ -23,7 +23,7 @@ class CourseService:
         course = self.db.getCourse(courseId)
         if course is None:
             raise CourseDoesNotExist
-        usersData = self._getUsersData(course, userId)
+        usersData = self._getUsersData([course], userId)
         actualUserData = usersData[userId]
         if not self.courseValidator.canViewCourse(course, actualUserData):
             raise CourseDoesNotExist
@@ -32,18 +32,7 @@ class CourseService:
 
     def getCourses(self, userId, courseFilters):
         courses = self.db.getCourses(courseFilters)
-        result = []
-        usersData = self._getUsersData(courses, userId)
-        actualUserData = usersData[userId]
-        for course in courses:
-            if not self.courseValidator.canViewCourse(course, actualUserData):
-                continue
-            creatorData = usersData[course["creator_id"]]
-            if self._filterUserByName(courseFilters, creatorData, prefix="creator_"):
-                continue
-            self._addExtraData(course, creatorData, actualUserData)
-            result.append(course)
-        return result
+        return self._filterCourses(courses, userId, courseFilters)
 
     def deleteCourse(self, courseId, userId):
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId)
@@ -110,15 +99,7 @@ class CourseService:
 
     def getMySubscriptions(self, userId):
         mySubscriptions = self.db.getMySubscriptions(userId)
-        result = []
-        usersData = self._getUsersData(mySubscriptions, userId)
-        actualUserData = usersData[userId]
-        for course in mySubscriptions:
-            if course["blocked"] or course["cancelled"]:
-                continue
-            self._addExtraData(course, usersData[course["creator_id"]], actualUserData)
-            result.append(course)
-        return result
+        return self._filterCourses(mySubscriptions, userId)
 
     def getUsers(self, courseId, userId, usersFilters):
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId)
@@ -158,15 +139,9 @@ class CourseService:
         self.courseValidator.raiseExceptionIfCourseIsAlreadyLiked(courseId, userId)
         self.db.addFavoriteCourse(courseId, userId)
 
-    def getFavoriteCourses(self, userId):
-        favCourses = self.db.getFavoriteCourses(userId)
-        result = []
-        usersData = self._getUsersData(favCourses, userId)
-        actualUserData = usersData[userId]
-        for course in favCourses:
-            self._addExtraData(course, usersData[course["creator_id"]], actualUserData)
-            result.append(course)
-        return result
+    def getFavoriteCourses(self, userId, courseFilters):
+        favCourses = self.db.getFavoriteCourses(userId, courseFilters)
+        return self._filterCourses(favCourses, userId, courseFilters)
 
     def removeFavoriteCourse(self, removeFavCourse):
         courseId = removeFavCourse["id"]
@@ -175,7 +150,29 @@ class CourseService:
         self.courseValidator.raiseExceptionIfCourseIsNotLiked(courseId, userId)
         self.db.removeFavoriteCourse(courseId, userId)
 
+    def getMyCollaborations(self, userId, courseFilters):
+        myCollaborations = self.db.getMyCollaborations(userId, courseFilters)
+        return self._filterCourses(myCollaborations, userId, courseFilters)
+
+    def getHistorical(self, userId, historicalFilters):
+        courses = self.db.getHistorical(userId, historicalFilters)
+        return self._filterCourses(courses, userId, historicalFilters)
+
     # Auxiliary Functions
+    def _filterCourses(self, courses: List[dict], userId: int, courseFilters: dict = None):
+        result = []
+        usersData = self._getUsersData(courses, userId)
+        actualUserData = usersData[userId]
+        for course in courses:
+            if not self.courseValidator.canViewCourse(course, actualUserData):
+                continue
+            creatorData = usersData[course["creator_id"]]
+            if self._filterUserByName(courseFilters, creatorData, prefix="creator_"):
+                continue
+            self._addExtraData(course, creatorData, actualUserData)
+            result.append(course)
+        return result
+
     def _addExtraData(self, courseData: dict, creatorData: dict, userData: dict):
         courseData["creator_first_name"] = creatorData["first_name"]
         courseData["creator_last_name"] = creatorData["last_name"]
@@ -209,7 +206,7 @@ class CourseService:
             and self.courseValidator.canCollaborate(courseData["id"], userData)
         )
 
-    def _getUsersData(self, courses: dict, userId: int):
+    def _getUsersData(self, courses: List[dict], userId: int):
         # ToDo: rename this function
         ids = {userId}
         for course in courses:
@@ -238,6 +235,8 @@ class CourseService:
             raise UserNotFound()
 
     def _filterUserByName(self, filters, user, prefix=""):
+        if filters is None:
+            return False
         if (
             filters.get(prefix + "first_name", "")
             and filters[prefix + "first_name"].lower() != user["first_name"].lower()

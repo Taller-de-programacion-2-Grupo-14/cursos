@@ -1,12 +1,15 @@
 from fastapi import Query
 from typing import Optional
+from exceptions.CourseException import InvalidStatusType
+
+STATUS = {"aprobado": "approved", "desaprobado": "failed", "en curso": "on course"}
 
 
 def getFilters(filtersDic):
     filters = {}
     for filterName, value in filtersDic.items():
         if value is not None:
-            filters[filterName] = value.lower() if type(value) != int else value
+            filters[filterName] = value.lower() if type(value) == str else value
     return filters
 
 
@@ -61,6 +64,28 @@ class UsersQueryParams:
             "first_name": first_name,
             "last_name": last_name,
             "subscribers": subscribers,
+            "offset": offset,
+            "limit": limit,
+        }
+
+    def getFilters(self):
+        return getFilters(self.filters)
+
+
+class HistoricalQueryParams:
+    def __init__(
+            self,
+            status: Optional[str] = Query(None),
+            offset: Optional[int] = Query(0, ge=0),
+            limit: Optional[int] = Query(500, le=500),
+    ):
+        if status is not None:
+            if status.lower() not in STATUS:
+                raise InvalidStatusType(STATUS.keys())
+            else:
+                status = STATUS[status.lower()]
+        self.filters = {
+            "status": status,
             "offset": offset,
             "limit": limit,
         }
