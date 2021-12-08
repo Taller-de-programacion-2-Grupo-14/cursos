@@ -74,10 +74,10 @@ class UsersQueryParams:
 
 class HistoricalQueryParams:
     def __init__(
-            self,
-            status: Optional[str] = Query(None),
-            offset: Optional[int] = Query(0, ge=0),
-            limit: Optional[int] = Query(500, le=500),
+        self,
+        status: Optional[str] = Query(None),
+        offset: Optional[int] = Query(0, ge=0),
+        limit: Optional[int] = Query(500, le=500),
     ):
         if status is not None:
             if status.lower() not in STATUS:

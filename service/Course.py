@@ -159,7 +159,9 @@ class CourseService:
         return self._filterCourses(courses, userId, historicalFilters)
 
     # Auxiliary Functions
-    def _filterCourses(self, courses: List[dict], userId: int, courseFilters: dict = None):
+    def _filterCourses(
+        self, courses: List[dict], userId: int, courseFilters: dict = None
+    ):
         result = []
         usersData = self._getUsersData(courses, userId)
         actualUserData = usersData[userId]

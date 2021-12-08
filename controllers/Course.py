@@ -50,7 +50,9 @@ class CourseController:
         return self._getListCoursesResponse(self.service.getMyCourses(userId))
 
     def handleGetMyCollaborations(self, userId, courseFilters):
-        return self._getListCoursesResponse(self.service.getMyCollaborations(userId, courseFilters))
+        return self._getListCoursesResponse(
+            self.service.getMyCollaborations(userId, courseFilters)
+        )
 
     def handleGetMySubscriptions(self, userId):
         return self._getListCoursesResponse(self.service.getMySubscriptions(userId))
@@ -76,7 +78,9 @@ class CourseController:
         }
 
     def handleGetFavoriteCourses(self, userId, courseFilters):
-        return self._getListCoursesResponse(self.service.getFavoriteCourses(userId, courseFilters))
+        return self._getListCoursesResponse(
+            self.service.getFavoriteCourses(userId, courseFilters)
+        )
 
     def handleRemoveFavoriteCourse(self, removeFavCourse):
         self.service.removeFavoriteCourse(removeFavCourse)
@@ -86,7 +90,9 @@ class CourseController:
         }
 
     def handleGetHistorical(self, userId, historicalFilters):
-        return self._getListCoursesResponse(self.service.getHistorical(userId, historicalFilters))
+        return self._getListCoursesResponse(
+            self.service.getHistorical(userId, historicalFilters)
+        )
 
     def _getListCoursesResponse(self, coursesList):
         return {"message": coursesList, "status": self._getCorrectStatus(coursesList)}
