@@ -240,12 +240,12 @@ class CourseService:
     def _filterUserByName(self, filters, user, prefix=""):
         if (
             filters.get(prefix + "first_name", "")
-            and filters[prefix + "first_name"] != user["first_name"]
+            and filters[prefix + "first_name"].lower() != user["first_name"].lower()
         ):
             return True
         if (
             filters.get(prefix + "last_name", "")
-            and filters[prefix + "last_name"] != user["last_name"]
+            and filters[prefix + "last_name"].lower() != user["last_name"].lower()
         ):
             return True
         return False

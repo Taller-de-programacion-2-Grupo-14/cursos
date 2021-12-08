@@ -362,7 +362,7 @@ paths:
         '204':
           description: No content
 
-  '/courses/block/{courseId}':
+  '/courses/block/{id}':
     'delete':
       tags:
         - Course
@@ -385,7 +385,7 @@ paths:
         '404':
           description: Course not found
 
-  '/courses/unblock/{courseId}':
+  '/courses/unblock/{id}':
     'post':
       tags:
         - Course

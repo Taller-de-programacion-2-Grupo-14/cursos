@@ -207,10 +207,10 @@ class DB:
                 filterQuery += "WHERE "
             if filterName == "free_text":
                 filterQuery += (
-                    f"(name LIKE '%{value}%' OR description LIKE '%{value}%')"
+                    f"(LOWER(name) LIKE '%{value}%' OR LOWER(description) LIKE '%{value}%')"
                 )
             elif filterName in {"name", "type", "location", "subscription"}:
-                filterQuery += f"{filterName} LIKE '%{value}%'"
+                filterQuery += f"LOWER({filterName}) LIKE '%{value}%'"
             else:
                 filterQuery += f"{filterName} = {value}"
         filterQuery += (

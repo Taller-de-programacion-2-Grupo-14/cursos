@@ -6,7 +6,7 @@ def getFilters(filtersDic):
     filters = {}
     for filterName, value in filtersDic.items():
         if value is not None:
-            filters[filterName] = value
+            filters[filterName] = value.lower() if type(value) != int else value
     return filters
 
 
