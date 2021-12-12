@@ -60,7 +60,7 @@ class DB:
         query = self._buildQuery("courses", filters=courseFilters)
         return self._parseResult(self.session.execute(text(query)))
 
-    def deleteCourse(self, courseId):
+    def cancelCourse(self, courseId):
         query = self._buildQuery(
             "courses", "UPDATE", ["cancelled = 1"], filters={"id": courseId}
         )

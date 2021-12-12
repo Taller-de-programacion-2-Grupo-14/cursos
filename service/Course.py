@@ -2,15 +2,17 @@ from requests import HTTPError
 from typing import List
 from exceptions.CourseException import *
 from external.users import Users
+from notifications.NotificationManager import NotificationManager
 from persistence.postgre import DB
 from validator.CourseValidator import CourseValidator
 
 
 class CourseService:
-    def __init__(self, database: DB, usersClient: Users):
+    def __init__(self, database: DB, usersClient: Users, notification: NotificationManager):
         self.db = database
         self.userClient = usersClient
         self.courseValidator = CourseValidator(database)
+        self.notification = notification
 
     def addCourse(self, courseInfo):
         if self.courseValidator.hasACourseWithTheSameName(
@@ -34,10 +36,11 @@ class CourseService:
         courses = self.db.getCourses(courseFilters)
         return self._filterCourses(courses, userId, courseFilters)
 
-    def deleteCourse(self, courseId, userId):
+    def cancelCourse(self, courseId, userId):
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId)
         self.courseValidator.raiseExceptionIfIsNotTheCourseCreator(courseId, userId)
-        self.db.deleteCourse(courseId)
+        # ToDo: send notificaction
+        self.db.cancelCourse(courseId)
 
     def editCourse(self, courseNewInfo):
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseNewInfo["id"])
@@ -162,6 +165,21 @@ class CourseService:
         courses = self.db.getHistorical(userId, historicalFilters)
         return self._filterCourses(courses, userId, historicalFilters)
 
+    def sendCollaborationRequest(self, collaborationRequest):
+        courseId = collaborationRequest["id"]
+        self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId)
+        self.courseValidator.raiseExceptionIfIsNotTheCourseCreator(courseId, collaborationRequest["user_id"])
+        userData = self.getUserData(collaborationRequest["email"])
+        userToken = self.getUserToken(userData["user_id"])
+        courseData = self.db.getCourse(courseId)
+        creatorName = courseData["creator_last_name"] + ", " + courseData["creator_first_name"]
+        body = f"Hola {userData['user_id']}, queres ser colaborador en el curso {courseData['name']} creado por {creatorName}?"
+        return self.notification.collaborationRequest(userToken, courseId, body)
+
+    def sendNotification(self, notification):
+        userToken = self.getUserToken(notification["user_id"])
+        return self.notification.sendNotification(userToken, notification["title"], notification["body"])
+
     # Auxiliary Functions
     def _filterCourses(
         self, courses: List[dict], userId: int, courseFilters: dict = None
@@ -236,6 +254,13 @@ class CourseService:
     def getUsersData(self, userIds: List[int]):
         try:
             return self.userClient.getBatchUsers(userIds).get("users", [])
+        except HTTPError as e:
+            print(f"exception while getting user f{e}")
+            raise UserNotFound()
+
+    def getUserToken(self, userId: int):
+        try:
+            return self.userClient.getUserToken(userId)
         except HTTPError as e:
             print(f"exception while getting user f{e}")
             raise UserNotFound()

@@ -1,12 +1,10 @@
 from fastapi import status
 from service.Course import CourseService
-from notifications.NotificationManager import NotificationManager
 
 
 class CourseController:
     def __init__(self, courseService: CourseService):
         self.service = courseService
-        self.notification = NotificationManager()
 
     def handleCreate(self, course_create_data):
         self.service.addCourse(course_create_data)
@@ -21,8 +19,8 @@ class CourseController:
             self.service.getCourses(userId, courseFilters)
         )
 
-    def handleDelete(self, courseId, userId):
-        self.service.deleteCourse(courseId, userId)
+    def handleCancel(self, courseId, userId):
+        self.service.cancelCourse(courseId, userId)
         return {"message": "Course deleted correctly", "status": status.HTTP_200_OK}
 
     def handleEdit(self, courseNewInfo):
@@ -41,7 +39,7 @@ class CourseController:
         }
 
     def handleSendCollaborationRequest(self, collaborationRequest):
-        response = self.notification.sendNotification(collaborationRequest)
+        response = self.service.sendCollaborationRequest(collaborationRequest)
         return {"message": f"message {response} sent correctly", "status": status.HTTP_200_OK}
 
     def handleAddSubscriber(self, courseId, subscriberId):
@@ -99,6 +97,10 @@ class CourseController:
         return self._getListCoursesResponse(
             self.service.getHistorical(userId, historicalFilters)
         )
+
+    def handleSendNotification(self, notification):
+        response = self.service.sendNotification(notification)
+        return {"message": f"message {response} sent correctly", "status": status.HTTP_200_OK}
 
     def _getListCoursesResponse(self, coursesList):
         return {"message": coursesList, "status": self._getCorrectStatus(coursesList)}
