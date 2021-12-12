@@ -15,14 +15,13 @@ class NotificationManager:
 
     # title: str, body: str, tokens: List[str], dataObject=None
     def sendNotification(self, collabRequest):
-        dataObject = {"actions": [{"id": 1, "action": "yes"}, {"id": 2, "action": "no"}]}
+        dataObject = {"id_course": 1}
         response = PushClient().publish(
-            PushMessage(to="ExponentPushToken[NOK]",
-                        title="Queres colaborar forro?",
-                        body="Hola que tal tu como estas? dime si eres feliz",
+            PushMessage(to="ExponentPushToken[oOnm2SAFR3TXmiVrGuzUit]",
+                        title="Queres colaborar?",
+                        body="Hola queres colaborar en este curso?",
                         data=dataObject,
-                        sound="default",
-                        display_in_foreground=True))
+                        category="collaborations"))
         return response
 
     # def courseCancelled(self, courseName: str, usersToNotify: List[int]):
