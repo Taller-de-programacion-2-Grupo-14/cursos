@@ -103,7 +103,11 @@ class CourseService:
 
     def getUsers(self, courseId, userId, usersFilters):
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId)
-        self.courseValidator.raiseExceptionIfIsNotTheCourseCreator(courseId, userId)
+        userData = self.getUserData(userId)
+        if not userData["is_admin"] and not self.courseValidator.isTheCourseCreator(
+            courseId, userId
+        ):
+            raise InvalidUserAction
         userIds = self.db.getUsers(courseId, usersFilters)
         usersData = self.getUsersData(userIds)
         result = []
