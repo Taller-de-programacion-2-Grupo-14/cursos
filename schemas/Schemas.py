@@ -9,7 +9,7 @@ class CreateCourseSchema(BaseModel):
     description: str
     hashtags: str
     type: str
-    exams: int = Field(ge=0)
+    exams: int = Field(gt=0)
     subscription: str
     location: str = Field(min_length=3, max_length=255)
     user_id: int

@@ -307,7 +307,7 @@ paths:
     'get':
       tags:
         - Course
-      description: Obtiene los cursos (que NO estan CANCELADOS o BLOQUEADOS) a los cuales me suscribi
+      description: Obtiene los cursos (que NO estan CANCELADOS o BLOQUEADOS) que estoy cursando acutalmente (status En Curso)
       parameters:
         - in: header
           name: x-access-token
@@ -362,7 +362,7 @@ paths:
         '204':
           description: No content
 
-  '/courses/block/{courseId}':
+  '/courses/block/{id}':
     'delete':
       tags:
         - Course
@@ -385,7 +385,7 @@ paths:
         '404':
           description: Course not found
 
-  '/courses/unblock/{courseId}':
+  '/courses/unblock/{id}':
     'post':
       tags:
         - Course
@@ -436,8 +436,41 @@ paths:
     'get':
       tags:
         - Course
-      description: Obtiene los cursos (que NO estan CANCELADOS o BLOQUEADOS)
+      description: Obtiene los cursos favoritos (que NO estan CANCELADOS o BLOQUEADOS)
       parameters:
+        - in: query
+          name: location
+          example: 'Obera'
+        - in: query
+          name: name
+          example: 'Python'
+        - in: query
+          name: creator_first_name
+          example: 'Juan'
+        - in: query
+          name: creator_last_name
+          example: 'Perez'
+        - in: query
+          name: hashtags
+          example: 'python, nacho, branca'
+        - in: query
+          name: type
+          example: 'Programacion'
+        - in: query
+          name: subscription
+          example: 'Premium'
+        - in: query
+          name: exams
+          example: 5
+        - in: query
+          name: free_text
+          example: 'tres tristes tigres'
+        - in: query
+          name: offset
+          example: 0
+        - in: query
+          name: limit
+          example: 500
         - in: header
           name: x-access-token
           required: true
@@ -483,8 +516,17 @@ paths:
     'get':
       tags:
         - Course
-      description: Obtiene el historico de cursos (que NO estan CANCELADOS o BLOQUEADOS). En esta lista figuran los cursos approved, failed y on course
+      description: Obtiene el historico de cursos (que NO estan CANCELADOS o BLOQUEADOS). En esta lista figuran los cursos con estado Aprobado, Desaprobado o En Curso
       parameters:
+        - in: query
+          name: status
+          example: 'Aprobado'
+        - in: query
+          name: offset
+          example: 0
+        - in: query
+          name: limit
+          example: 500
         - in: header
           name: x-access-token
           required: true
@@ -501,12 +543,45 @@ paths:
         '400':
           description: Bad Request
 
-  '/courses/collaborations':
+  '/courses/my_collaborations':
     'get':
       tags:
         - Course
       description: Obtiene todos los cursos (que NO estan CANCELADOS o BLOQUEADOS) en los cuales soy colaborador
       parameters:
+        - in: query
+          name: location
+          example: 'Obera'
+        - in: query
+          name: name
+          example: 'Python'
+        - in: query
+          name: creator_first_name
+          example: 'Juan'
+        - in: query
+          name: creator_last_name
+          example: 'Perez'
+        - in: query
+          name: hashtags
+          example: 'python, nacho, branca'
+        - in: query
+          name: type
+          example: 'Programacion'
+        - in: query
+          name: subscription
+          example: 'Premium'
+        - in: query
+          name: exams
+          example: 5
+        - in: query
+          name: free_text
+          example: 'tres tristes tigres'
+        - in: query
+          name: offset
+          example: 0
+        - in: query
+          name: limit
+          example: 500
         - in: header
           name: x-access-token
           required: true
@@ -615,7 +690,6 @@ components:
         updated_at:
           type: string
           example: 'timestamp, swagger no tiene'
-
 
     editCourse:
       type: object

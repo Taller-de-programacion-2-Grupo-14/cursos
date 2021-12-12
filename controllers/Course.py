@@ -10,7 +10,7 @@ class CourseController:
         self.service.addCourse(course_create_data)
         return {"message": "Course created successfully", "status": status.HTTP_200_OK}
 
-    def handleGet(self, courseId, userId):
+    def handleGetCourse(self, courseId, userId):
         course = self.service.getCourse(courseId, userId)
         return {"message": course, "status": status.HTTP_200_OK}
 
@@ -49,6 +49,11 @@ class CourseController:
     def handleGetMyCourses(self, userId):
         return self._getListCoursesResponse(self.service.getMyCourses(userId))
 
+    def handleGetMyCollaborations(self, userId, courseFilters):
+        return self._getListCoursesResponse(
+            self.service.getMyCollaborations(userId, courseFilters)
+        )
+
     def handleGetMySubscriptions(self, userId):
         return self._getListCoursesResponse(self.service.getMySubscriptions(userId))
 
@@ -72,8 +77,10 @@ class CourseController:
             "status": status.HTTP_200_OK,
         }
 
-    def handleGetFavoriteCourses(self, userId):
-        return self._getListCoursesResponse(self.service.getFavoriteCourses(userId))
+    def handleGetFavoriteCourses(self, userId, courseFilters):
+        return self._getListCoursesResponse(
+            self.service.getFavoriteCourses(userId, courseFilters)
+        )
 
     def handleRemoveFavoriteCourse(self, removeFavCourse):
         self.service.removeFavoriteCourse(removeFavCourse)
@@ -81,6 +88,11 @@ class CourseController:
             "message": "Course removed correctly from your Favorites",
             "status": status.HTTP_200_OK,
         }
+
+    def handleGetHistorical(self, userId, historicalFilters):
+        return self._getListCoursesResponse(
+            self.service.getHistorical(userId, historicalFilters)
+        )
 
     def _getListCoursesResponse(self, coursesList):
         return {"message": coursesList, "status": self._getCorrectStatus(coursesList)}

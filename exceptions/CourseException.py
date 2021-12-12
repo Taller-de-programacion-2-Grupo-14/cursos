@@ -84,6 +84,15 @@ class InvalidSubscriptionType(CourseException):
         )
 
 
+class InvalidStatusType(CourseException):
+    def __init__(self, statusTypes):
+        super().__init__(
+            status.HTTP_400_BAD_REQUEST,
+            f"The status must be of one of the "
+            f"following types: {', '.join(statusTypes)} ",
+        )
+
+
 class CourseIsAlreadyBlocked(CourseException):
     def __init__(self):
         super().__init__(

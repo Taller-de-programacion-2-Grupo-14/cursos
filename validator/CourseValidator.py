@@ -31,16 +31,14 @@ class CourseValidator:
 
     def canSubscribe(self, courseId: int, userData: dict):
         courseData = self.db.getCourse(courseId)
-        if (
+        return not (
             userData["blocked"]
             or self.isSubscribed(courseId, userData["user_id"])
             or courseData["creator_id"] == userData["user_id"]
             or not self.hasCorrectSubscriptionType(
                 courseData["subscription"], userData["subscription"]
             )
-        ):
-            return False
-        return True
+        )
 
     def canCollaborate(self, courseId: int, userData: dict):
         if userData["blocked"] or self.isACollaborator(courseId, userData["user_id"]):
@@ -109,9 +107,9 @@ class CourseValidator:
             raise InvalidUserAction
 
     def raiseExceptionIfCourseIsAlreadyLiked(self, courseId, userId):
-        if courseId in self.db.getCoursesLikedBy(userId):
+        if courseId in self.db.getCourseIdsLikedBy(userId):
             raise CourseIsAlreadyLiked
 
     def raiseExceptionIfCourseIsNotLiked(self, courseId, userId):
-        if courseId not in self.db.getCoursesLikedBy(userId):
+        if courseId not in self.db.getCourseIdsLikedBy(userId):
             raise CourseIsNotLiked
