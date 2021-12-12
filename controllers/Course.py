@@ -40,7 +40,10 @@ class CourseController:
 
     def handleSendCollaborationRequest(self, collaborationRequest):
         response = self.service.sendCollaborationRequest(collaborationRequest)
-        return {"message": f"message {response} sent correctly", "status": status.HTTP_200_OK}
+        return {
+            "message": f"message {response} sent correctly",
+            "status": status.HTTP_200_OK,
+        }
 
     def handleAddSubscriber(self, courseId, subscriberId):
         self.service.addSubscriber(courseId, subscriberId)
@@ -100,7 +103,10 @@ class CourseController:
 
     def handleSendNotification(self, notification):
         response = self.service.sendNotification(notification)
-        return {"message": f"message {response} sent correctly", "status": status.HTTP_200_OK}
+        return {
+            "message": f"message {response} sent correctly",
+            "status": status.HTTP_200_OK,
+        }
 
     def _getListCoursesResponse(self, coursesList):
         return {"message": coursesList, "status": self._getCorrectStatus(coursesList)}

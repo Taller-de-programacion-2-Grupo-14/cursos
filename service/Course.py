@@ -8,7 +8,9 @@ from validator.CourseValidator import CourseValidator
 
 
 class CourseService:
-    def __init__(self, database: DB, usersClient: Users, notification: NotificationManager):
+    def __init__(
+        self, database: DB, usersClient: Users, notification: NotificationManager
+    ):
         self.db = database
         self.userClient = usersClient
         self.courseValidator = CourseValidator(database)
@@ -168,17 +170,26 @@ class CourseService:
     def sendCollaborationRequest(self, collaborationRequest):
         courseId = collaborationRequest["id"]
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId)
-        self.courseValidator.raiseExceptionIfIsNotTheCourseCreator(courseId, collaborationRequest["user_id"])
+        self.courseValidator.raiseExceptionIfIsNotTheCourseCreator(
+            courseId, collaborationRequest["user_id"]
+        )
         userData = self.getUserData(collaborationRequest["email"])
         userToken = self.getUserToken(userData["user_id"])
         courseData = self.db.getCourse(courseId)
-        creatorName = courseData["creator_last_name"] + ", " + courseData["creator_first_name"]
-        body = f"Hola {userData['user_id']}, queres ser colaborador en el curso {courseData['name']} creado por {creatorName}?"
+        creatorName = (
+            courseData["creator_last_name"] + ", " + courseData["creator_first_name"]
+        )
+        body = (
+            f"Hola {userData['user_id']},"
+            f"queres ser colaborador en el curso {courseData['name']} creado por {creatorName}?"
+        )
         return self.notification.collaborationRequest(userToken, courseId, body)
 
     def sendNotification(self, notification):
         userToken = self.getUserToken(notification["user_id"])
-        return self.notification.sendNotification(userToken, notification["title"], notification["body"])
+        return self.notification.sendNotification(
+            userToken, notification["title"], notification["body"]
+        )
 
     # Auxiliary Functions
     def _filterCourses(

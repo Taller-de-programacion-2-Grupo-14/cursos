@@ -60,6 +60,7 @@ class CollaborationRequest(BaseModel):
     user_id: int
     id: int
 
+
 class NotificationSchema(BaseModel):
     title: str
     body: str
