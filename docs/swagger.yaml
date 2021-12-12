@@ -206,6 +206,35 @@ paths:
         '404':
           description: El curso no existe
 
+  '/courses/collaborators/send_request':
+    'post':
+      tags:
+        - Course
+      description: Envia la solicitud para ser colaborador de un curso
+      parameters:
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido del creador del curso
+      requestBody:
+        description: Body para enviar la solicitud
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/sendCollaborationRequest'
+      responses:
+        '200':
+          description: Solicitud enviada correctamente
+        '208':
+          description: Ya es un colaborador del curso
+        '401':
+          description: Token invalido
+        '403':
+          description: No token provisto
+        '404':
+          description: El curso no existe o el usuario no existe
+
   '/courses/collaborators/remove':
     'delete':
       tags:
@@ -322,6 +351,26 @@ paths:
                 $ref: '#/components/schemas/mySubscriptions'
         '204':
           description: No content
+
+  '/notification':
+    'post':
+      tags:
+        - Notification
+      description: Envia una notificacion a un usuario
+      requestBody:
+        description: Body para enviar la notificacion
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/notification'
+      responses:
+        '200':
+          description: Notificacion enviada correctamente
+        '400':
+          description: Bad request
+        '404':
+          description: El usuario no existe
 
   '/courses/users/{id}':
     'get':
@@ -846,3 +895,42 @@ components:
           type: array
           description: Es un array en el cual cada elemento contiene TODA la informacion de un curso en el cual soy colaborador
 
+    sendCollaborationRequest:
+      type: object
+      required:
+        - id
+        - user_id
+        - email
+      properties:
+        id:
+          type: integer
+          description: Id del curso
+          example: 1
+        user_id:
+          type: integer
+          description: Id del usuario que decide enviar la solicitud
+          example: 3
+        email:
+          type: string
+          description: email del usuario al que se le va a enviar la solicitud
+          example: 'ubademy.14@gmail.com'
+
+    notification:
+      type: object
+      required:
+        - title
+        - body
+        - user_id
+      properties:
+        title:
+          type: string
+          description: Titulo de la notificacion
+          example: 'Temaiken'
+        body:
+          type: string
+          description: Id del usuario que decide enviar la solicitud
+          example: 'Hola que tal tu como estas? dime si eres feliz'
+        user_id:
+          type: integer
+          description: id del usuario al que se le envia la notificacion
+          example: 3

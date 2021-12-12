@@ -56,6 +56,11 @@ class FavCourseSchema(BaseModel):
 
 
 class CollaborationRequest(BaseModel):
-    user_email: str
+    email: str
     user_id: int
     id: int
+
+class NotificationSchema(BaseModel):
+    title: str
+    body: str
+    user_id: int

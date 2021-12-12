@@ -12,6 +12,7 @@ from exceptions.CourseException import CourseException
 from queryParams.QueryParams import *
 from sqlalchemy import create_engine
 import yaml
+from notifications.NotificationManager import NotificationManager
 import uvicorn  # For debugging
 
 dbUrl = os.environ.get("DATABASE_URL")
@@ -21,7 +22,8 @@ print(f"url to connect is: {dbUrl}")
 engine = create_engine(dbUrl, echo=True, future=True)
 app = FastAPI()
 userSearcher = Users()
-courseService = CourseService(DB(engine), userSearcher)
+notificationManager = NotificationManager()
+courseService = CourseService(DB(engine), userSearcher, notificationManager)
 courseController = CourseController(courseService)
 
 
@@ -50,8 +52,8 @@ def editCourse(courseId: int, courseNewInfo: EditCourseInfoSchema):
 
 
 @app.delete("/courses/{courseId}")
-def deleteCourse(courseId: int, user: UserSchema):
-    return courseController.handleDelete(courseId, user.user_id)
+def cancelCourse(courseId: int, user: UserSchema):
+    return courseController.handleCancel(courseId, user.user_id)
 
 
 @app.post("/courses/collaborators")
@@ -146,6 +148,11 @@ def getFavorites(
 @app.delete("/courses/favorites/remove")
 def removeFavorite(removeFavCourse: FavCourseSchema):
     return courseController.handleRemoveFavoriteCourse(removeFavCourse.dict())
+
+
+@app.post("/notification")
+def sendNotification(notification: NotificationSchema):
+    return courseController.handleSendNotification(notification.dict())
 
 
 @app.get("/doc-yml")
