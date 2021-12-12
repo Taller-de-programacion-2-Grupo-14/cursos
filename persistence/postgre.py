@@ -57,8 +57,6 @@ class DB:
         return course[0]
 
     def getCourses(self, courseFilters):
-        # ToDo: Mostrar los cursos que estan on course
-        # En el historico haces esto
         query = self._buildQuery("courses", filters=courseFilters)
         return self._parseResult(self.session.execute(text(query)))
 
@@ -119,10 +117,7 @@ class DB:
         self.session.commit()
 
     def getMySubscriptions(self, userId):
-        query = f"SELECT * FROM (SELECT id_course AS courseId FROM enrolled WHERE id_student \
-                = {userId}) as studentCourses JOIN courses AS c ON c.id \
-                = studentCourses.courseId"
-        return self._parseResult(self.session.execute(text(query)))
+        return self.getHistorical(userId, {"status": "on course"})
 
     def getUsers(self, courseId, userFilters):
         getSubscribers = userFilters["subscribers"]
@@ -156,10 +151,13 @@ class DB:
         self.session.add(favoriteCourses)
         self.session.commit()
 
-    def getFavoriteCourses(self, userId):
-        query = f"SELECT * FROM (SELECT course_id AS courseId FROM favoriteCourses WHERE user_id \
-                = {userId}) as favCourses JOIN courses AS c ON c.id \
-                = favCourses.courseId"
+    def getFavoriteCourses(self, userId, courseFilters):
+        filterQuery = self._buildFilterQuery(courseFilters)
+        query = (
+            f"SELECT * FROM "
+            f"(SELECT course_id AS courseId FROM favoriteCourses WHERE user_id = {userId}) "
+            f"as favCourses JOIN courses AS c ON c.id = favCourses.courseId {filterQuery}"
+        )
         return self._parseResult(self.session.execute(text(query)))
 
     def removeFavoriteCourse(self, courseId, userId):
@@ -171,7 +169,25 @@ class DB:
         self.session.execute(text(query))
         self.session.commit()
 
-    def getCoursesLikedBy(self, userId):
+    def getMyCollaborations(self, userId, courseFilters):
+        filterQuery = self._buildFilterQuery(courseFilters)
+        query = (
+            f"SELECT * FROM "
+            f"(SELECT id_course AS courseId FROM collaborators WHERE id_collaborator = {userId}) "
+            f"as collaborations JOIN courses AS c ON c.id = collaborations.courseId {filterQuery}"
+        )
+        return self._parseResult(self.session.execute(text(query)))
+
+    def getHistorical(self, userId, historicalFilters):
+        filterQuery = self._buildFilterQuery(historicalFilters)
+        query = (
+            f"SELECT * FROM "
+            f"(SELECT id_course AS courseId, status FROM enrolled WHERE id_student = {userId}) "
+            f"as history JOIN courses AS c ON c.id = history.courseId {filterQuery}"
+        )
+        return self._parseResult(self.session.execute(text(query)))
+
+    def getCourseIdsLikedBy(self, userId):
         query = self._buildQuery(
             "favoriteCourses", columns=["course_id"], filters={"user_id": userId}
         )
@@ -207,10 +223,11 @@ class DB:
                 filterQuery += "WHERE "
             if filterName == "free_text":
                 filterQuery += (
-                    f"(name LIKE '%{value}%' OR description LIKE '%{value}%')"
+                    f"(LOWER(name) LIKE '%{value}%' "
+                    f"OR LOWER(description) LIKE '%{value}%')"
                 )
-            elif filterName in {"name", "type", "location", "subscription"}:
-                filterQuery += f"{filterName} LIKE '%{value}%'"
+            elif filterName in {"name", "type", "location", "subscription", "status"}:
+                filterQuery += f"LOWER({filterName}) LIKE '%{value}%'"
             else:
                 filterQuery += f"{filterName} = {value}"
         filterQuery += (

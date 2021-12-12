@@ -32,7 +32,7 @@ def createCourse(createCourseData: CreateCourseSchema):
 
 @app.get("/courses/{courseId}/view")
 def getCourse(courseId: int, user: UserSchema):
-    return courseController.handleGet(courseId, user.user_id)
+    return courseController.handleGetCourse(courseId, user.user_id)
 
 
 @app.get("/courses")
@@ -89,6 +89,25 @@ def getMySubscriptions(user: UserSchema):
     return courseController.handleGetMySubscriptions(user.user_id)
 
 
+@app.get("/courses/my_collaborations")
+def getMyCollaborations(
+    user: UserSchema, courseFilters: CourseQueryParams = Depends(CourseQueryParams)
+):
+    return courseController.handleGetMyCollaborations(
+        user.user_id, courseFilters.getFilters()
+    )
+
+
+@app.get("/courses/historical")
+def getHistorical(
+    user: UserSchema,
+    historicalFilters: HistoricalQueryParams = Depends(HistoricalQueryParams),
+):
+    return courseController.handleGetHistorical(
+        user.user_id, historicalFilters.getFilters()
+    )
+
+
 @app.get("/courses/users/{courseId}")
 def getCourseUsers(
     courseId: int,
@@ -116,8 +135,12 @@ def addFavoriteCourse(favCourse: FavCourseSchema):
 
 
 @app.get("/courses/favorites")
-def getFavorites(user: UserSchema):
-    return courseController.handleGetFavoriteCourses(user.user_id)
+def getFavorites(
+    user: UserSchema, courseFilters: CourseQueryParams = Depends(CourseQueryParams)
+):
+    return courseController.handleGetFavoriteCourses(
+        user.user_id, courseFilters.getFilters()
+    )
 
 
 @app.delete("/courses/favorites/remove")
