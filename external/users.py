@@ -7,7 +7,11 @@ class Users:
         self.host = os.environ.get("USERS_HOSTNAME")
 
     def getUser(self, userId):
-        response = requests.get(f"{self.host}users?id={userId}")
+        if isinstance(userId, str):
+            queryParam = "email="
+        else:
+            queryParam = "id="
+        response = requests.get(f"{self.host}users?{queryParam}{userId}")
         # f"https://ubademy-14-prod.herokuapp.com/users?id={userId}" For debugging
         response.raise_for_status()
         return response.json()
