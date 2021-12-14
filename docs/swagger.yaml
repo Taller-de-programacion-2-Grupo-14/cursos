@@ -1013,13 +1013,13 @@ components:
       type: object
       required:
         - id
-        - email
+        - email_collaborator
       properties:
         id:
           type: integer
           description: Id del curso
-          example: 1
-        email:
+          example: 18
+        email_collaborator:
           type: string
           description: email del usuario al que se le va a enviar la solicitud
           example: 'ubademy.14@gmail.com'
