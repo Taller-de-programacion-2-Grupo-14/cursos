@@ -177,9 +177,10 @@ class CourseService:
         # ToDo: chequear que no este mandando la solicitud a alguien que es colaborador o creador
         userToken = self.getUserToken(userData["user_id"])
         courseData = self.db.getCourse(courseId)
-        creatorName = (
-            courseData["creator_last_name"] + ", " + courseData["creator_first_name"]
-        )
+        # creatorName = (
+        #     courseData["creator_last_name"] + ", " + courseData["creator_first_name"]
+        # )
+        creatorName = "Lichita"
         body = (
             f"Hola {userData['user_id']},"
             f"queres ser colaborador en el curso {courseData['name']} creado por {creatorName}?"
