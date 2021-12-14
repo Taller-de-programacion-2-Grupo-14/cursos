@@ -273,7 +273,7 @@ class CourseService:
 
     def getUserToken(self, userId: int):
         try:
-            return self.userClient.getUserToken(userId)
+            return self.userClient.getUserToken(userId).get("token", -1)
         except HTTPError as e:
             print(f"exception while getting user f{e}")
             raise UserNotFound()

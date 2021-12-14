@@ -34,4 +34,5 @@ class Users:
         )
         # f"https://ubademy-14-prod.herokuapp.com/users?id={userId}" For debugging
         response.raise_for_status()
+        # ToDo: ver que pasa si viene vacio
         return response.json()
