@@ -37,3 +37,14 @@ create table favoriteCourses(
     foreign key (course_id) references courses(id) on delete cascade,
     primary key (course_id, user_id)
 );
+
+create table multimedia(
+    course_id int not null,
+    title varchar(255) default (''),
+    tag varchar(255) not null ,
+    url varchar(255) not null,
+    created_at timestamp default (now()),
+    updated_at timestamp default (now()),
+    foreign key (course_id) references courses(id) on delete cascade,
+    primary key (course_id, url)
+);
