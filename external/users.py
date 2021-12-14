@@ -30,7 +30,7 @@ class Users:
 
     def getUserToken(self, userId: int):
         response = requests.get(
-            f"{self.host}/get-token/{userId}"
+            f"{self.host}get-token/{userId}"
         )
         # f"https://ubademy-14-prod.herokuapp.com/users?id={userId}" For debugging
         response.raise_for_status()
