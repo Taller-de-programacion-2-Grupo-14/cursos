@@ -116,6 +116,120 @@ paths:
         '404':
           description: Curso no existe
 
+  '/courses/multimedia/{id}':
+    'post':
+      tags:
+        - Course
+      description: Agrega un archivo multimedia (Foto o Video) al curso
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+          required: true
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido del creador
+      requestBody:
+        description: body para la creacion del curso
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/addMultimedia'
+      responses:
+        '200':
+          description: Todo okay
+        '208':
+          description: El contenido multimedia ya existe en el curso
+        '400':
+          description: Bad Request
+        '401':
+          description: Token invalido o Invalid user action
+        '403':
+          description: No token provisto
+        '404':
+          description: Curso no encontrado
+
+    'get':
+      tags:
+        - Course
+      description: Obtiene los archivos multimedia de un curso
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+          required: true
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido del creador
+      responses:
+        '200':
+          description: Todo okay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getMultimedia'
+        '400':
+          description: Bad Request
+        '401':
+          description: Token invalido o Invalid user action
+        '403':
+          description: No token provisto
+        '404':
+          description: Curso no encontrado
+
+    'delete':
+      tags:
+        - Course
+      description: Borra el contenido multimedia de un curso
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+          required: true
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido del creador
+      responses:
+        '200':
+          description: Todo okay
+        '400':
+          description: Bad Request
+        '401':
+          description: Token invalido o Invalid user action
+        '403':
+          description: No token provisto
+        '404':
+          description: Curso no encontrado o archivo no encontrado
+
+    'patch':
+      tags:
+        - Course
+      description: Modifica un archivo multimedia de un curso
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+          required: true
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido del creador
+      responses:
+        '200':
+          description: Archivo modificado correctamente
+        '400':
+          description: Bad Request
+        '401':
+          description: Token invalido o Invalid user action
+        '403':
+          description: No token provisto
+        '404':
+          description: Curso no encontrado
+
   '/courses/{id}':
     'delete':
       tags:
@@ -899,17 +1013,12 @@ components:
       type: object
       required:
         - id
-        - user_id
         - email
       properties:
         id:
           type: integer
           description: Id del curso
           example: 1
-        user_id:
-          type: integer
-          description: Id del usuario que decide enviar la solicitud
-          example: 3
         email:
           type: string
           description: email del usuario al que se le va a enviar la solicitud
@@ -934,3 +1043,5 @@ components:
           type: integer
           description: id del usuario al que se le envia la notificacion
           example: 3
+    addMultimedia:
+    getMultimedia:

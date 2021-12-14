@@ -174,6 +174,7 @@ class CourseService:
             courseId, collaborationRequest["user_id"]
         )
         userData = self.getUserData(collaborationRequest["email"])
+        # ToDo: chequear que no este mandando la solicitud a alguien que es colaborador o creador
         userToken = self.getUserToken(userData["user_id"])
         courseData = self.db.getCourse(courseId)
         creatorName = (
