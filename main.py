@@ -13,7 +13,7 @@ from queryParams.QueryParams import *
 from sqlalchemy import create_engine
 import yaml
 from notifications.NotificationManager import NotificationManager
-import uvicorn  # For debugging
+# import uvicorn  # For debugging
 
 dbUrl = os.environ.get("DATABASE_URL")
 if not dbUrl.startswith("postgresql"):
@@ -210,5 +210,5 @@ def handleUnknownException(request: Request, exc: Exception):
 
 
 # For debugging
-if __name__ == "__main__":
-    uvicorn.run(app, port=8000)
+# if __name__ == "__main__":
+#     uvicorn.run(app, port=8000)

@@ -7,9 +7,7 @@ class Users:
         self.host = os.environ.get("USERS_HOSTNAME")
 
     def getUser(self, userId):
-        response = requests.get(
-            f"https://ubademy-14-prod.herokuapp.com/users?id={userId}"
-        )
+        response = requests.get(f"{self.host}users?id={userId}")
         # f"https://ubademy-14-prod.herokuapp.com/users?id={userId}" For debugging
         response.raise_for_status()
         return response.json()
@@ -17,18 +15,18 @@ class Users:
     def getBatchUsers(self, userIds: list):
         if not userIds:
             return {}
-        # response = requests.get(
-        #     f"{self.host}users/batch?ids={','.join(map(str, userIds))}"
-        # )
         response = requests.get(
-            f"https://ubademy-14-prod.herokuapp.com/users/batch?ids={','.join(map(str, userIds))}"
-        )  # For debugging
+            f"{self.host}users/batch?ids={','.join(map(str, userIds))}"
+        )
+        # response = requests.get(
+        #     f"https://ubademy-14-prod.herokuapp.com/users/batch?ids={','.join(map(str, userIds))}"
+        # )  # For debugging
         response.raise_for_status()
         return response.json()
 
     def getUserToken(self, userId: int):
         response = requests.get(
-            f"https://ubademy-14-prod.herokuapp.com/users/get-token/:id={userId}"
+            f"{self.host}/get-token/{userId}"
         )
         # f"https://ubademy-14-prod.herokuapp.com/users?id={userId}" For debugging
         response.raise_for_status()
