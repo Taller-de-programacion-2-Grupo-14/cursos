@@ -196,7 +196,7 @@ class CourseService:
     def sendData(self, data):
         userId = data["user_id"]
         courseId = data["course_id"]
-        return self.getCourse(self, courseId, userId)
+        return self.getCourse(courseId, userId)
 
     # Auxiliary Functions
     def _filterCourses(
