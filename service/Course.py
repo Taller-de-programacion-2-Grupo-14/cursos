@@ -61,10 +61,8 @@ class CourseService:
     def addCollaborator(self, collaborator):
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(collaborator["id"])
         userData = self.getUserData(collaborator["user_id"])
-        if self.courseValidator.raiseExceptionIfCanNotCollaborate(
-            collaborator["id"], userData
-        ):
-            self.db.addCollaborator(collaborator)
+        self.courseValidator.raiseExceptionIfCanNotCollaborate(collaborator["id"], userData)
+        self.db.addCollaborator(collaborator)
 
     def removeCollaborator(self, removeCollaborator):
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(
@@ -174,16 +172,14 @@ class CourseService:
             courseId, collaborationRequest["user_id"]
         )
         userData = self.getUserData(collaborationRequest["email_collaborator"])
-        # ToDo: chequear que no este mandando la solicitud a alguien que es colaborador o creador
+        if userData["user_id"] == collaborationRequest["user_id"]:
+            raise InvalidUserAction
+        self.courseValidator.raiseExceptionIfCanNotCollaborate(courseId, userData)
         userToken = self.getUserToken(userData["user_id"])
         courseData = self.db.getCourse(courseId)
-        # creatorName = (
-        #     courseData["creator_last_name"] + ", " + courseData["creator_first_name"]
-        # )
-        creatorName = "Lichita"
         body = (
-            f"Hola {userData['user_id']},"
-            f"queres ser colaborador en el curso {courseData['name']} creado por {creatorName}?"
+            f"Hola {userData['first_name'] + userData['last_name']},"
+            f"queres ser colaborador en el curso {courseData['name']}?"
         )
         return self.notification.collaborationRequest(userToken, courseId, body)
 
@@ -219,6 +215,7 @@ class CourseService:
         courseData["is_subscribed"] = self.courseValidator.isSubscribed(
             courseData["id"], userData["user_id"]
         )
+        courseData["liked"] = self._isLiked(courseData["id"], userData["user_id"])
 
     def _canEdit(self, courseData: dict, userData: dict):
         return (
@@ -242,6 +239,9 @@ class CourseService:
             and not courseData["can_edit"]
             and self.courseValidator.canCollaborate(courseData["id"], userData)
         )
+
+    def _isLiked(self, courseId: int, userId: int):
+        return courseId in self.db.getCourseIdsLikedBy(userId)
 
     def _getUsersData(self, courses: List[dict], userId: int):
         # ToDo: rename this function
