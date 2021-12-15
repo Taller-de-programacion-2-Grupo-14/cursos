@@ -189,6 +189,11 @@ class CourseService:
             userToken, notification["title"], notification["body"]
         )
 
+    def sendData(self, data):
+        userId = data["user_id"]
+        courseId = data["course_id"]
+        return self.getCourse(courseId, userId)
+
     # Auxiliary Functions
     def _filterCourses(
         self, courses: List[dict], userId: int, courseFilters: dict = None
