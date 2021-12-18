@@ -92,18 +92,3 @@ class HistoricalQueryParams:
 
     def getFilters(self):
         return getFilters(self.filters)
-
-
-class ExamQueryParams:
-    def __init__(
-        self,
-        user_id: int,
-        course_id: int,
-    ):
-        self.data = {
-            "user_id": user_id,
-            "course_id": course_id
-        }
-
-    def get_data(self):
-        return self.data

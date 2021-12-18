@@ -900,6 +900,12 @@ components:
         is_subscribed:
           type: boolean
           example: false
+        is_liked:
+          type: boolean
+          example: false
+        can_create_exams:
+          type: boolean
+          example: true
         subscription:
           type: string
           example: 'premium'

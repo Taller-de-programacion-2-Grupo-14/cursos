@@ -155,11 +155,6 @@ def sendNotification(notification: NotificationSchema):
     return courseController.handleSendNotification(notification.dict())
 
 
-@app.get("/courses/exams")
-def sendData(data: ExamQueryParams = Depends(ExamQueryParams)):
-    return courseController.handleSendData(data.get_data())
-
-
 @app.get("/doc-yml")
 def getSwagger():
     with open("docs/swagger.yaml") as f:

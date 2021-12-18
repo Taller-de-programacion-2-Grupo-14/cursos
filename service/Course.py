@@ -1,6 +1,7 @@
 from requests import HTTPError
 from typing import List
 from exceptions.CourseException import *
+from external.exams import Exams
 from external.users import Users
 from notifications.NotificationManager import NotificationManager
 from persistence.postgre import DB
@@ -9,10 +10,11 @@ from validator.CourseValidator import CourseValidator
 
 class CourseService:
     def __init__(
-        self, database: DB, usersClient: Users, notification: NotificationManager
+        self, database: DB, usersClient: Users, examsClient: Exams, notification: NotificationManager
     ):
         self.db = database
         self.userClient = usersClient
+        self.examsClient = examsClient
         self.courseValidator = CourseValidator(database)
         self.notification = notification
 
@@ -189,11 +191,6 @@ class CourseService:
             userToken, notification["title"], notification["body"]
         )
 
-    def sendData(self, data):
-        userId = data["user_id"]
-        courseId = data["course_id"]
-        return self.getCourse(courseId, userId)
-
     # Auxiliary Functions
     def _filterCourses(
         self, courses: List[dict], userId: int, courseFilters: dict = None
@@ -221,6 +218,7 @@ class CourseService:
             courseData["id"], userData["user_id"]
         )
         courseData["liked"] = self._isLiked(courseData["id"], userData["user_id"])
+        courseData["can_create_exams"] = self._canCreateExams(courseData)
 
     def _canEdit(self, courseData: dict, userData: dict):
         return (
@@ -247,6 +245,12 @@ class CourseService:
 
     def _isLiked(self, courseId: int, userId: int):
         return courseId in self.db.getCourseIdsLikedBy(userId)
+
+    def _canCreateExams(self, courseData: dict):
+        return (
+            courseData["can_edit"]
+            and len(self.getPublishedExams(courseData["id"], courseData["creator_id"])) == courseData["exams"]
+        )
 
     def _getUsersData(self, courses: List[dict], userId: int):
         # ToDo: rename this function
@@ -282,6 +286,13 @@ class CourseService:
         except HTTPError as e:
             print(f"exception while getting user f{e}")
             raise UserNotFound()
+
+    def getPublishedExams(self, courseId, userId):
+        try:
+            return [exam for exam in self.examsClient.getExams(courseId, userId) if exam.get("status", "") == "published"]
+        except HTTPError as e:
+            print(f"exception while getting course exams f{e}")
+            raise ExamsNotFound()
 
     def _filterUserByName(self, filters, user, prefix=""):
         if filters is None:

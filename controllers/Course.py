@@ -108,9 +108,6 @@ class CourseController:
             "status": status.HTTP_200_OK,
         }
 
-    def handleSendData(self, data):
-        return self.service.sendData(data)
-
     def _getListCoursesResponse(self, coursesList):
         return {"message": coursesList, "status": self._getCorrectStatus(coursesList)}
 
