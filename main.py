@@ -152,7 +152,7 @@ def removeFavorite(removeFavCourse: FavCourseSchema):
 
 @app.patch("courses/update_subscriber_status")
 def updateSubscriberStatus(subscriberGrades: SubscriberGradesSchema):
-    courseController.handleUpdateSubscriberStatus(subscriberGrades.dict())
+    return courseController.handleUpdateSubscriberStatus(subscriberGrades.dict())
 
 
 @app.post("/notification")

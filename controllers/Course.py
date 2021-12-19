@@ -103,6 +103,10 @@ class CourseController:
 
     def handleUpdateSubscriberStatus(self, subscriberGrades):
         self.service.updateSubscriberStatus(subscriberGrades)
+        return {
+            "message": "Subscriber status updated correctly",
+            "status": status.HTTP_200_OK,
+        }
 
     def handleSendNotification(self, notification):
         response = self.service.sendNotification(notification)

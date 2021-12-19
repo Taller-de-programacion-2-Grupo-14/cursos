@@ -4,8 +4,7 @@ import requests
 
 class Exams:
     def __init__(self):
-        # ToDo: change for exams
-        self.host = os.environ.get("USERS_HOSTNAME")
+        self.host = os.environ.get("EXAMS_HOSTNAME")
 
     def _getExams(self, userId, url):
         response = requests.request(
