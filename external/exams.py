@@ -10,7 +10,7 @@ class Exams:
         response = requests.request(
             method="get",
             url=url,
-            data={"user_id": userId}
+            json={"user_id": userId}
         )
         response.raise_for_status()
         return response.json().get("message")

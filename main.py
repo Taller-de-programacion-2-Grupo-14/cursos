@@ -3,6 +3,7 @@ from fastapi import FastAPI, Request, status, Depends
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
+from external.exams import Exams
 from external.users import Users
 from persistence.postgre import DB
 from service.Course import CourseService
@@ -13,7 +14,6 @@ from queryParams.QueryParams import *
 from sqlalchemy import create_engine
 import yaml
 from notifications.NotificationManager import NotificationManager
-# import uvicorn  # For debugging
 
 dbUrl = os.environ.get("DATABASE_URL")
 if not dbUrl.startswith("postgresql"):
@@ -22,8 +22,9 @@ print(f"url to connect is: {dbUrl}")
 engine = create_engine(dbUrl, echo=True, future=True)
 app = FastAPI()
 userSearcher = Users()
+examsClient = Exams()
 notificationManager = NotificationManager()
-courseService = CourseService(DB(engine), userSearcher, notificationManager)
+courseService = CourseService(DB(engine), userSearcher, examsClient, notificationManager)
 courseController = CourseController(courseService)
 
 
@@ -212,8 +213,3 @@ def handleUnknownException(request: Request, exc: Exception):
             }
         ),
     )
-
-
-# For debugging
-# if __name__ == "__main__":
-#     uvicorn.run(app, port=8000)
