@@ -13,6 +13,7 @@ class Exams:
             json={"user_id": userId}
         )
         response.raise_for_status()
+        print(response.json().get("message"))
         return response.json().get("message")
 
     def getExams(self, courseId, userId):
