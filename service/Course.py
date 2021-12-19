@@ -185,6 +185,28 @@ class CourseService:
         )
         return self.notification.collaborationRequest(userToken, courseId, body)
 
+    def updateSubscriberStatus(self, subscriberGrades):
+        course = self.db.getCourse(subscriberGrades["course_id"])
+        if course is None:
+            raise CourseDoesNotExist
+        amountExams = course["exams"]
+        passedExams, failedExams = self._getGrades(subscriberGrades["grades"])
+        passedThreshold = amountExams // 2 + 1
+        failedThreshold = amountExams - passedThreshold
+        courseStatus = None
+        if failedExams > failedThreshold:
+            courseStatus = "failed"
+        elif passedExams >= passedThreshold:
+            courseStatus = "approved"
+        if courseStatus is not None:
+            self.db.updateSubscriberStatus(subscriberGrades["course_id"], courseStatus, subscriberGrades["user_id"])
+            token = self.getUserToken(subscriberGrades["user_id"])
+            self.notification.courseFinished(
+                token,
+                course["name"],
+                courseStatus
+            )
+
     def sendNotification(self, notification):
         userToken = self.getUserToken(notification["user_id"])
         return self.notification.sendNotification(
@@ -219,6 +241,7 @@ class CourseService:
         )
         courseData["liked"] = self._isLiked(courseData["id"], userData["user_id"])
         courseData["can_create_exams"] = self._canCreateExams(courseData)
+        courseData["subscriber_course_status"] = self._getSubscriberCourseStatus(courseData, userData)
 
     def _canEdit(self, courseData: dict, userData: dict):
         return (
@@ -252,8 +275,12 @@ class CourseService:
             and len(self.getPublishedExams(courseData["id"], courseData["creator_id"])) == courseData["exams"]
         )
 
+    def _getSubscriberCourseStatus(self, courseData: dict, userData: dict):
+        if courseData["can_edit"] or courseData["can_collaborate"] or not courseData["is_subscribed"]:
+            return ""
+        return self.db.getSubscriberCourseStatus(courseData["id"], userData["user_id"])
+
     def _getUsersData(self, courses: List[dict], userId: int):
-        # ToDo: rename this function
         ids = {userId}
         for course in courses:
             ids.add(course["creator_id"])
@@ -265,6 +292,14 @@ class CourseService:
 
     def _getCourseName(self, courseId):
         return self.db.getCourse(courseId)["name"]
+
+    def _getGrades(self, grades):
+        passedExams = 0
+        failedExams = 0
+        for grade in grades:
+            passedExams += int(grade == "pass")
+            failedExams += int(grade == "fail")
+        return passedExams, failedExams
 
     def getUserData(self, userId):
         try:
@@ -281,11 +316,10 @@ class CourseService:
             raise UserNotFound()
 
     def getUserToken(self, userId: int):
-        try:
-            return self.userClient.getUserToken(userId).get("token", -1)
-        except HTTPError as e:
-            print(f"exception while getting user f{e}")
-            raise UserNotFound()
+        token = self.userClient.getUserToken(userId).get("token")
+        if token is None:
+            raise TokenNotFound()
+        return token
 
     def getPublishedExams(self, courseId, userId):
         try:

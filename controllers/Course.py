@@ -101,6 +101,9 @@ class CourseController:
             self.service.getHistorical(userId, historicalFilters)
         )
 
+    def handleUpdateSubscriberStatus(self, subscriberGrades):
+        self.service.updateSubscriberStatus(subscriberGrades)
+
     def handleSendNotification(self, notification):
         response = self.service.sendNotification(notification)
         return {

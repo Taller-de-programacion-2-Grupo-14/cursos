@@ -193,6 +193,24 @@ class DB:
         )
         return {record.course_id for record in self.session.execute(text(query))}
 
+    def getSubscriberCourseStatus(self, courseId: int, userId: int):
+        query = self._buildQuery(
+            "enrolled",
+            columns=["status"],
+            filters={"id_course": courseId, "id_student": userId}
+        )
+        return self.session.execute(text(query))[0].get("status")
+
+    def updateSubscriberStatus(self, courseId: int, courseStatus: str, userId: int):
+        query = self._buildQuery(
+            "enrolled",
+            "UPDATE",
+            [f"status = {courseStatus}"],
+            filters={"id_course": courseId, "id_student": userId}
+        )
+        self.session.execute(text(query))
+        self.session.commit()
+
     def _buildQuery(self, tableName, operation="SELECT", columns=None, filters=None):
         operation = operation.upper()
         if columns is None:
