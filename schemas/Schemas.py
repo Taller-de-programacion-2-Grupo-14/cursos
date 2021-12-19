@@ -71,3 +71,8 @@ class NotificationSchema(BaseModel):
     title: str
     body: str
     user_id: int
+
+
+class SummarySchema(BaseModel):
+    course_id: int
+    user_id: int

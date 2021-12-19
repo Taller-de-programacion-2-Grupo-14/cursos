@@ -219,6 +219,17 @@ class CourseService:
             userToken, notification["title"], notification["body"]
         )
 
+    def getSummaryInformation(self, summary):
+        self.courseValidator.raiseExceptionIfCourseDoesNotExists(summary["course_id"])
+        course = self.db.getSummaryInformation(summary["course_id"])
+        userData = self.getUserData(summary["user_id"])
+        course["can_edit"] = self._canEdit(course, userData)
+        course["can_collaborate"] = self._canCollaborate(course, userData)
+        course["is_subscribed"] = self.courseValidator.isSubscribed(
+            course["id"], userData["user_id"]
+        )
+        return course
+
     # Auxiliary Functions
     def _filterCourses(
         self, courses: List[dict], userId: int, courseFilters: dict = None

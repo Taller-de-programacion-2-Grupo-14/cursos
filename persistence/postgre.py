@@ -211,6 +211,14 @@ class DB:
         self.session.execute(text(query))
         self.session.commit()
 
+    def getSummaryInformation(self, courseId: int):
+        query = self._buildQuery(
+            "courses",
+            columns=["id", "creator_id", "exams", "blocked", "cancelled"],
+            filters={"id": courseId}
+        )
+        return self._parseResult(self.session.execute(text(query)))[0]
+
     def _buildQuery(self, tableName, operation="SELECT", columns=None, filters=None):
         operation = operation.upper()
         if columns is None:

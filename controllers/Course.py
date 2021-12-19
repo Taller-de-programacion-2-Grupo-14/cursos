@@ -115,6 +115,10 @@ class CourseController:
             "status": status.HTTP_200_OK,
         }
 
+    def handleGetSummaryInformation(self, summary):
+        response = self.service.getSummaryInformation(summary)
+        return {"message": response, "status": status.HTTP_200_OK}
+
     def _getListCoursesResponse(self, coursesList):
         return {"message": coursesList, "status": self._getCorrectStatus(coursesList)}
 
