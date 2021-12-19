@@ -123,3 +123,13 @@ class CourseIsNotLiked(CourseException):
             status.HTTP_208_ALREADY_REPORTED,
             "The course is not liked",
         )
+
+
+class TokenNotFound(CourseException):
+    def __init__(self):
+        super().__init__(status.HTTP_404_NOT_FOUND, "Token not found")
+
+
+class ExamsNotFound(CourseException):
+    def __init__(self):
+        super().__init__(status.HTTP_404_NOT_FOUND, "Exams not found")

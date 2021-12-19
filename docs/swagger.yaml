@@ -900,12 +900,16 @@ components:
         is_subscribed:
           type: boolean
           example: false
-        is_liked:
+        liked:
           type: boolean
           example: false
         can_create_exams:
           type: boolean
           example: true
+        subscriber_course_status:
+          type: string
+          description: Describe el estado de un estudiante en el curso. Si es el creador, un colaborador o no esta suscrito al curso este campo es una CADENA VACIA
+          example: ''
         subscription:
           type: string
           example: 'premium'

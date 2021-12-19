@@ -61,6 +61,12 @@ class CollaborationRequest(BaseModel):
     id: int
 
 
+class SubscriberGradesSchema(BaseModel):
+    user_id: int
+    course_id: int
+    grades: list
+
+
 class NotificationSchema(BaseModel):
     title: str
     body: str

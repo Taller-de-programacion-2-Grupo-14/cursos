@@ -13,7 +13,8 @@ class Exams:
             url=url,
             data={"user_id": userId}
         )
-        return response.json()
+        response.raise_for_status()
+        return response.json().get("message")
 
     def getExams(self, courseId, userId):
         return self._getExams(userId, f"{self.host}exams/{courseId}")

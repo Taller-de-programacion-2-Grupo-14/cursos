@@ -12,7 +12,6 @@ class Users:
         else:
             queryParam = "id="
         response = requests.get(f"{self.host}users?{queryParam}{userId}")
-        # f"https://ubademy-14-prod.herokuapp.com/users?id={userId}" For debugging
         response.raise_for_status()
         return response.json()
 
@@ -22,9 +21,6 @@ class Users:
         response = requests.get(
             f"{self.host}users/batch?ids={','.join(map(str, userIds))}"
         )
-        # response = requests.get(
-        #     f"https://ubademy-14-prod.herokuapp.com/users/batch?ids={','.join(map(str, userIds))}"
-        # )  # For debugging
         response.raise_for_status()
         return response.json()
 
@@ -32,7 +28,5 @@ class Users:
         response = requests.get(
             f"{self.host}users/get-token/{userId}"
         )
-        # f"https://ubademy-14-prod.herokuapp.com/users?id={userId}" For debugging
         response.raise_for_status()
-        # ToDo: ver que pasa si viene vacio
         return response.json()
