@@ -202,7 +202,7 @@ class DB:
         return self.session.execute(text(query))[0].get("status")
 
     def updateSubscriberStatus(self, courseId: int, courseStatus: str, userId: int):
-        query = f"UPDATE enrolled SET status = {courseStatus} " \
+        query = f"UPDATE enrolled SET status = '{courseStatus}' " \
                 f"WHERE id_course = {courseId} AND id_student = {userId}"
         self.session.execute(text(query))
         self.session.commit()
