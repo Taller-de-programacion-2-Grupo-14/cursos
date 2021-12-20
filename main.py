@@ -151,7 +151,7 @@ def removeFavorite(removeFavCourse: FavCourseSchema):
     return courseController.handleRemoveFavoriteCourse(removeFavCourse.dict())
 
 
-@app.patch("/courses/update_subscriber_status")
+@app.patch("/courses/update/subscriber_status")
 def updateSubscriberStatus(subscriberGrades: SubscriberGradesSchema):
     return courseController.handleUpdateSubscriberStatus(subscriberGrades.dict())
 
