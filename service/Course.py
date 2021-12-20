@@ -198,20 +198,20 @@ class CourseService:
             courseStatus = "failed"
         elif passedExams >= passedThreshold:
             courseStatus = "approved"
-        token = self.getUserToken(subscriberGrades["user_id"])
+        # token = self.getUserToken(subscriberGrades["user_id"])
         if courseStatus is not None:
             self.db.updateSubscriberStatus(subscriberGrades["course_id"], courseStatus, subscriberGrades["user_id"])
-            self.notification.courseFinished(
-                token,
-                course["name"],
-                courseStatus
-            )
-        else:
-            self.notification.sendNotification(
-                token,
-                "Examen corregido",
-                f"Tu examen del curso '{course['name']}' fue corregido"
-            )
+            # self.notification.courseFinished(
+            #     token,
+            #     course["name"],
+            #     courseStatus
+            # )
+        # else:
+            # self.notification.sendNotification(
+            #     token,
+            #     "Examen corregido",
+            #     f"Tu examen del curso '{course['name']}' fue corregido"
+            # )
 
     def sendNotification(self, notification):
         userToken = self.getUserToken(notification["user_id"])
