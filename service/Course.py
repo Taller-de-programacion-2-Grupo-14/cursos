@@ -333,10 +333,11 @@ class CourseService:
             raise UserNotFound()
 
     def getUserToken(self, userId: int):
-        token = self.userClient.getUserToken(userId).get("token")
-        if token is None:
+        try:
+            return self.userClient.getUserToken(userId).get("token")
+        except HTTPError as e:
+            print(f"exception while getting user token f{e}")
             raise TokenNotFound()
-        return token
 
     def getPublishedExams(self, courseId, userId):
         try:
