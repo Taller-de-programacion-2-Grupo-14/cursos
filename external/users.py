@@ -28,5 +28,6 @@ class Users:
         response = requests.get(
             f"{self.host}users/get-token/{userId}"
         )
+        print(f"response token: {response}")
         response.raise_for_status()
         return response.json()
