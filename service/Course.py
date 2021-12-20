@@ -341,7 +341,6 @@ class CourseService:
     def getPublishedExams(self, courseId, userId):
         try:
             exams = self.examsClient.getExams(courseId, userId)
-            print(exams)
             return [exam for exam in exams if exam.get("status", "") == "published"]
         except HTTPError as e:
             print(f"exception while getting course exams f{e}")

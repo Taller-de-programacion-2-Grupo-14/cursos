@@ -1,3 +1,4 @@
+from typing import List
 from pydantic import BaseModel, Field, validator
 from exceptions.CourseException import InvalidSubscriptionType
 
@@ -64,7 +65,7 @@ class CollaborationRequest(BaseModel):
 class SubscriberGradesSchema(BaseModel):
     user_id: int
     course_id: int
-    grades: list
+    grades: List[str]
 
 
 class NotificationSchema(BaseModel):
