@@ -289,7 +289,7 @@ class CourseService:
     def _canCreateExams(self, courseData: dict):
         return (
             courseData["can_edit"]
-            and len(self.getPublishedExams(courseData["id"], courseData["creator_id"])) == courseData["exams"]
+            and len(self.getPublishedExams(courseData["id"], courseData["creator_id"])) < courseData["exams"]
         )
 
     def _getSubscriberCourseStatus(self, courseData: dict, userData: dict):
