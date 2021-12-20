@@ -194,6 +194,10 @@ class CourseService:
         passedThreshold = amountExams // 2 + 1
         failedThreshold = amountExams - passedThreshold
         courseStatus = None
+        print(f"Grades: {subscriberGrades['grades']}")
+        print(f"userId: {subscriberGrades['userId']}")
+        print(f"courseId: {subscriberGrades['course_id']}")
+        print(f"Passed Exams: {passedExams} --- Failed Exams: {failedExams}")
         if failedExams > failedThreshold:
             courseStatus = "failed"
         elif passedExams >= passedThreshold:
