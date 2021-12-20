@@ -205,7 +205,7 @@ class DB:
         query = self._buildQuery(
             "enrolled",
             "UPDATE",
-            [f"status = {courseStatus}"],
+            [f"status = '{courseStatus}'"],
             filters={"id_course": courseId, "id_student": userId}
         )
         self.session.execute(text(query))
