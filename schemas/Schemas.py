@@ -78,3 +78,10 @@ class NotificationSchema(BaseModel):
 class SummarySchema(BaseModel):
     course_id: int
     user_id: int
+
+
+class MultimediaSchema(BaseModel):
+    title: str
+    url: str
+    user_id: int
+

@@ -33,11 +33,13 @@ class CourseService:
         actualUserData = usersData[userId]
         if not self.courseValidator.canViewCourse(course, actualUserData):
             raise CourseDoesNotExist
+        self._addMultimediaIntoCourseData([course])
         self._addExtraData(course, usersData[course["creator_id"]], actualUserData)
         return course
 
     def getCourses(self, userId, courseFilters):
         courses = self.db.getCourses(courseFilters)
+        self._addMultimediaIntoCourseData(courses)
         return self._filterCourses(courses, userId, courseFilters)
 
     def cancelCourse(self, courseId, userId):
@@ -231,6 +233,14 @@ class CourseService:
         course["subscriber_course_status"] = self._getSubscriberCourseStatus(course, userData)
         return course
 
+    def addMultimedia(self, courseId, multimedia):
+        self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId)
+        self.courseValidator.raiseExceptionIfIsNotTheCourseCreator(courseId, multimedia["user_id"])
+        self.db.addMultimedia(courseId, multimedia)
+
+    def getMultimedia(self, courseId):
+        return self.db.getMultimedia(courseId)
+
     # Auxiliary Functions
     def _filterCourses(
         self, courses: List[dict], userId: int, courseFilters: dict = None
@@ -318,6 +328,10 @@ class CourseService:
             passedExams += int(grade == "pass")
             failedExams += int(grade == "fail")
         return passedExams, failedExams
+
+    def _addMultimediaIntoCourseData(self, courses: List[dict]):
+        for course in courses:
+            course["multimedia"] = self.db.getMultimedia(course["id"])
 
     def getUserData(self, userId):
         try:

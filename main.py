@@ -168,6 +168,16 @@ def getSummaryInformation(summary: SummarySchema):
     return courseController.handleGetSummaryInformation(summary.dict())
 
 
+@app.post("/courses/multimedia/{courseId}")
+def addMultimedia(courseId: int, multimedia: MultimediaSchema):
+    return courseController.handleAddMultimedia(courseId, multimedia.dict())
+
+
+@app.get("/courses/multimedia/{courseId}")
+def addMultimedia(courseId: int):
+    return courseController.handleGetMultimedia(courseId)
+
+
 @app.get("/doc-yml")
 def getSwagger():
     with open("docs/swagger.yaml") as f:

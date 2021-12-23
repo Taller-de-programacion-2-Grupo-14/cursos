@@ -4,6 +4,7 @@ from models.courses import Courses
 from models.collaborators import Collaborators
 from models.enrolled import Enrolled
 from models.favoriteCourses import FavoriteCourses
+from models.multimedia import Multimedia
 import re
 
 DEFAULT_OFFSET = 0
@@ -216,6 +217,21 @@ class DB:
             filters={"id": courseId}
         )
         return self._parseResult(self.session.execute(text(query)))[0]
+
+    def addMultimedia(self, courseId, multimedia):
+        multimedia = Multimedia(
+            course_id=courseId,
+            title=multimedia.get("title", ""),
+            url=multimedia.get("url", ""),
+            tag=multimedia.get("tag", ""),
+        )
+        self.session.add(multimedia)
+        self.session.commit()
+
+    def getMultimedia(self, courseId: int):
+        query = self._buildQuery("multimedia", filters={"course_id": courseId})
+        multimedia = self._parseResult(self.session.execute(text(query)))
+        return multimedia if multimedia is not None else []
 
     def _buildQuery(self, tableName, operation="SELECT", columns=None, filters=None):
         operation = operation.upper()

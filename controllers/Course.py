@@ -119,6 +119,16 @@ class CourseController:
         response = self.service.getSummaryInformation(summary)
         return {"message": response, "status": status.HTTP_200_OK}
 
+    def handleAddMultimedia(self, courseId, multimedia):
+        self.service.addMultimedia(courseId, multimedia)
+        return {"message": "Multimedia added correctly", "status": status.HTTP_200_OK}
+
+    def handleGetMultimedia(self, courseId):
+        return self._getListCoursesResponse(
+            self.service.getMultimedia(courseId)
+        )
+
+
     def _getListCoursesResponse(self, coursesList):
         return {"message": coursesList, "status": self._getCorrectStatus(coursesList)}
 
