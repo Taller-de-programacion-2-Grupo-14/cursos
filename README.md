@@ -1,5 +1,5 @@
 ![linter](https://github.com/Taller-de-programacion-2-Grupo-14/cursos/actions/workflows/linter.yml/badge.svg)
-
+[![codecov](https://codecov.io/gh/Taller-de-programacion-2-Grupo-14/ubademy-cursos/branch/master/graph/badge.svg?token=0V88B63RBJ)](https://codecov.io/gh/Taller-de-programacion-2-Grupo-14/ubademy-cursos)
 # Cursos
 API encargada de todas las operaciones relacionadas a cursos
 

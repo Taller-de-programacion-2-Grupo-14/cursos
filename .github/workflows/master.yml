@@ -1,0 +1,25 @@
+name: Build and Test
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: Install Python dependencies
+        run: pip install pytest pytest-cov -r requirements.txt
+      - name: Run tests
+        run: pytest --cov=service
+
+      - name: Upload to codecov
+        run: bash <(curl -s https://codecov.io/bash)
