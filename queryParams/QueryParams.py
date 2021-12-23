@@ -27,6 +27,7 @@ class CourseQueryParams:
         ),
         location: Optional[str] = Query(None, min_length=3, max_length=255),
         free_text: Optional[str] = Query(None, max_length=255),
+        last_created: Optional[bool] = Query(False),
         offset: Optional[int] = Query(0, ge=0),
         limit: Optional[int] = Query(500, le=500),
     ):
@@ -40,6 +41,7 @@ class CourseQueryParams:
             "subscription": subscription,
             "location": location,
             "free_text": free_text,
+            "last_created": last_created,
             "offset": offset,
             "limit": limit,
         }

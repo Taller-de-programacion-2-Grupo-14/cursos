@@ -14,6 +14,7 @@ from queryParams.QueryParams import *
 from sqlalchemy import create_engine
 import yaml
 from notifications.NotificationManager import NotificationManager
+from validator.CourseValidator import CourseValidator
 
 dbUrl = os.environ.get("DATABASE_URL")
 if not dbUrl.startswith("postgresql"):
@@ -24,7 +25,8 @@ app = FastAPI()
 userSearcher = Users()
 examsClient = Exams()
 notificationManager = NotificationManager()
-courseService = CourseService(DB(engine), userSearcher, examsClient, notificationManager)
+db = DB(engine)
+courseService = CourseService(db, CourseValidator(db), userSearcher, examsClient, notificationManager)
 courseController = CourseController(courseService)
 
 

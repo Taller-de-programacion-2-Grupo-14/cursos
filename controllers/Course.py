@@ -109,9 +109,9 @@ class CourseController:
         }
 
     def handleSendNotification(self, notification):
-        response = self.service.sendNotification(notification)
+        self.service.sendNotification(notification)
         return {
-            "message": f"message {response} sent correctly",
+            "message": f"message sent correctly",
             "status": status.HTTP_200_OK,
         }
 

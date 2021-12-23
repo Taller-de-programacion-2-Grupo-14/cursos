@@ -43,6 +43,7 @@ class DB:
             location=location,
             cancelled=0,
             blocked=False,
+            profile_pic_url=courseInfo.get("profile_pic_url", "")
         )
         self.session.add(c)
         self.session.commit()
