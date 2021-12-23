@@ -26,7 +26,9 @@ userSearcher = Users()
 examsClient = Exams()
 notificationManager = NotificationManager()
 db = DB(engine)
-courseService = CourseService(db, CourseValidator(db), userSearcher, examsClient, notificationManager)
+courseService = CourseService(
+    db, CourseValidator(db), userSearcher, examsClient, notificationManager
+)
 courseController = CourseController(courseService)
 
 
@@ -174,7 +176,7 @@ def addMultimedia(courseId: int, multimedia: MultimediaSchema):
 
 
 @app.get("/courses/multimedia/{courseId}")
-def addMultimedia(courseId: int):
+def getMultimedia(courseId: int):
     return courseController.handleGetMultimedia(courseId)
 
 

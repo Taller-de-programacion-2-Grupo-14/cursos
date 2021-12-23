@@ -1,4 +1,11 @@
-from sqlalchemy import Integer, String, DateTime, Column, ForeignKey, PrimaryKeyConstraint
+from sqlalchemy import (
+    Integer,
+    String,
+    DateTime,
+    Column,
+    ForeignKey,
+    PrimaryKeyConstraint,
+)
 from models.database import Base
 from datetime import datetime
 

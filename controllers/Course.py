@@ -111,7 +111,7 @@ class CourseController:
     def handleSendNotification(self, notification):
         self.service.sendNotification(notification)
         return {
-            "message": f"message sent correctly",
+            "message": "message sent correctly",
             "status": status.HTTP_200_OK,
         }
 
@@ -124,10 +124,7 @@ class CourseController:
         return {"message": "Multimedia added correctly", "status": status.HTTP_200_OK}
 
     def handleGetMultimedia(self, courseId):
-        return self._getListCoursesResponse(
-            self.service.getMultimedia(courseId)
-        )
-
+        return self._getListCoursesResponse(self.service.getMultimedia(courseId))
 
     def _getListCoursesResponse(self, coursesList):
         return {"message": coursesList, "status": self._getCorrectStatus(coursesList)}

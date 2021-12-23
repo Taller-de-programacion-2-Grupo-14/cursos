@@ -10,7 +10,12 @@ from validator.CourseValidator import CourseValidator
 
 class CourseService:
     def __init__(
-        self, database: DB, courseValidator: CourseValidator, usersClient: Users, examsClient: Exams, notification: NotificationManager
+        self,
+        database: DB,
+        courseValidator: CourseValidator,
+        usersClient: Users,
+        examsClient: Exams,
+        notification: NotificationManager,
     ):
         self.db = database
         self.userClient = usersClient
@@ -65,7 +70,9 @@ class CourseService:
     def addCollaborator(self, collaborator):
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(collaborator["id"])
         userData = self.getUserData(collaborator["user_id"])
-        self.courseValidator.raiseExceptionIfCanNotCollaborate(collaborator["id"], userData)
+        self.courseValidator.raiseExceptionIfCanNotCollaborate(
+            collaborator["id"], userData
+        )
         self.db.addCollaborator(collaborator)
 
     def removeCollaborator(self, removeCollaborator):
@@ -202,24 +209,24 @@ class CourseService:
             courseStatus = "approved"
         token = self.getUserToken(subscriberGrades["user_id"])
         if courseStatus is not None:
-            self.db.updateSubscriberStatus(subscriberGrades["course_id"], courseStatus, subscriberGrades["user_id"])
+            self.db.updateSubscriberStatus(
+                subscriberGrades["course_id"], courseStatus, subscriberGrades["user_id"]
+            )
             if token is not None:
-                self.notification.courseFinished(
-                    token,
-                    course["name"],
-                    courseStatus
-                )
+                self.notification.courseFinished(token, course["name"], courseStatus)
         elif token is not None:
             self.notification.sendNotification(
                 token,
                 "Examen corregido",
-                f"Tu examen del curso '{course['name']}' fue corregido"
+                f"Tu examen del curso '{course['name']}' fue corregido",
             )
 
     def sendNotification(self, notification):
         userToken = self.getUserToken(notification["user_id"])
         if userToken is not None:
-            self.notification.sendNotification(userToken, notification["title"], notification["body"])
+            self.notification.sendNotification(
+                userToken, notification["title"], notification["body"]
+            )
 
     def getSummaryInformation(self, summary):
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(summary["course_id"])
@@ -230,12 +237,16 @@ class CourseService:
         course["is_subscribed"] = self.courseValidator.isSubscribed(
             course["id"], userData["user_id"]
         )
-        course["subscriber_course_status"] = self._getSubscriberCourseStatus(course, userData)
+        course["subscriber_course_status"] = self._getSubscriberCourseStatus(
+            course, userData
+        )
         return course
 
     def addMultimedia(self, courseId, multimedia):
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId)
-        self.courseValidator.raiseExceptionIfIsNotTheCourseCreator(courseId, multimedia["user_id"])
+        self.courseValidator.raiseExceptionIfIsNotTheCourseCreator(
+            courseId, multimedia["user_id"]
+        )
         self.db.addMultimedia(courseId, multimedia)
 
     def getMultimedia(self, courseId):
@@ -269,7 +280,9 @@ class CourseService:
         )
         courseData["liked"] = self._isLiked(courseData["id"], userData["user_id"])
         courseData["can_create_exams"] = self._canCreateExams(courseData)
-        courseData["subscriber_course_status"] = self._getSubscriberCourseStatus(courseData, userData)
+        courseData["subscriber_course_status"] = self._getSubscriberCourseStatus(
+            courseData, userData
+        )
 
     def _canEdit(self, courseData: dict, userData: dict):
         return (
@@ -300,11 +313,16 @@ class CourseService:
     def _canCreateExams(self, courseData: dict):
         return (
             courseData["can_edit"]
-            and len(self.getPublishedExams(courseData["id"], courseData["creator_id"])) < courseData["exams"]
+            and len(self.getPublishedExams(courseData["id"], courseData["creator_id"]))
+            < courseData["exams"]
         )
 
     def _getSubscriberCourseStatus(self, courseData: dict, userData: dict):
-        if courseData["can_edit"] or courseData["can_collaborate"] or not courseData["is_subscribed"]:
+        if (
+            courseData["can_edit"]
+            or courseData["can_collaborate"]
+            or not courseData["is_subscribed"]
+        ):
             return ""
         return self.db.getSubscriberCourseStatus(courseData["id"], userData["user_id"])
 

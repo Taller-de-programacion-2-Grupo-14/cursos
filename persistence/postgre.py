@@ -17,7 +17,7 @@ SKIP_FILTERS = [
     "creator_last_name",
     "first_name",
     "last_name",
-    "last_created"
+    "last_created",
 ]
 
 
@@ -45,7 +45,7 @@ class DB:
             location=location,
             cancelled=0,
             blocked=False,
-            profile_pic_url=courseInfo.get("profile_pic_url", "")
+            profile_pic_url=courseInfo.get("profile_pic_url", ""),
         )
         self.session.add(c)
         self.session.commit()
@@ -200,13 +200,15 @@ class DB:
         query = self._buildQuery(
             "enrolled",
             columns=["status"],
-            filters={"id_course": courseId, "id_student": userId}
+            filters={"id_course": courseId, "id_student": userId},
         )
         return self.session.execute(text(query))[0].get("status")
 
     def updateSubscriberStatus(self, courseId: int, courseStatus: str, userId: int):
-        query = f"UPDATE enrolled SET status = '{courseStatus}' " \
-                f"WHERE id_course = {courseId} AND id_student = {userId}"
+        query = (
+            f"UPDATE enrolled SET status = '{courseStatus}' "
+            f"WHERE id_course = {courseId} AND id_student = {userId}"
+        )
         self.session.execute(text(query))
         self.session.commit()
 
@@ -214,7 +216,7 @@ class DB:
         query = self._buildQuery(
             "courses",
             columns=["id", "creator_id", "exams", "blocked", "cancelled"],
-            filters={"id": courseId}
+            filters={"id": courseId},
         )
         return self._parseResult(self.session.execute(text(query)))[0]
 

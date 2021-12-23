@@ -25,8 +25,6 @@ class Users:
         return response.json()
 
     def getUserToken(self, userId: int):
-        response = requests.get(
-            f"{self.host}users/get-token/{userId}"
-        )
+        response = requests.get(f"{self.host}users/get-token/{userId}")
         response.raise_for_status()
         return response.json()

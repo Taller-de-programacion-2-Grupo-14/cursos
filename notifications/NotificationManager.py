@@ -27,10 +27,8 @@ class NotificationManager:
 
     def courseFinished(self, userToNotify: str, courseName: str, courseStatus: str):
         courseStatus = "aprobaste" if courseStatus == "approved" else "desaprobaste"
-        body = f"Hola, {courseStatus} el curso '{courseName}'. " \
-               f"Para ver toda la informacion dirigete a la seccion 'Historico de cursos'"
-        self.sendNotification(
-            userToNotify,
-            "Curso finalizado",
-            body
+        body = (
+            f"Hola, {courseStatus} el curso '{courseName}'. "
+            f"Para ver toda la informacion dirigete a la seccion 'Historico de cursos'"
         )
+        self.sendNotification(userToNotify, "Curso finalizado", body)

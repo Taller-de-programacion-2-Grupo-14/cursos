@@ -7,11 +7,7 @@ class Exams:
         self.host = os.environ.get("EXAMS_HOSTNAME")
 
     def _getExams(self, userId, url):
-        response = requests.request(
-            method="get",
-            url=url,
-            json={"user_id": userId}
-        )
+        response = requests.request(method="get", url=url, json={"user_id": userId})
         response.raise_for_status()
         print(response.json().get("message"))
         return response.json().get("message")

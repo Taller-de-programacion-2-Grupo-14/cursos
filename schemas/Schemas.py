@@ -84,4 +84,3 @@ class MultimediaSchema(BaseModel):
     title: str
     url: str
     user_id: int
-
