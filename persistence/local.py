@@ -17,7 +17,6 @@ class DB:
     def getCourses(self, courseFilters):
         courses = []
         for course in self.db.values():
-            print(courseFilters)
             courses.append(course)
         return courses
 

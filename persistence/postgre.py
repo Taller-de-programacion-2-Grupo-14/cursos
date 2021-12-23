@@ -9,6 +9,10 @@ import re
 
 DEFAULT_OFFSET = 0
 DEFAULT_LIMIT = 500
+DEFAULT_PROFILE_IMG = (
+    "https://firebasestorage.googleapis.com/v0/b/uba-demy.appspot.com"
+    "/o/imagenes%2Fbanners%2Fgenerica.jpeg?alt=media&token=a62d3455-4a3c-4ca3-ab19-4df2d63c2ce9"
+)
 EDITABLE_FIELDS = ["name", "description", "location", "hashtags"]
 SKIP_FILTERS = [
     "offset",
@@ -45,7 +49,7 @@ class DB:
             location=location,
             cancelled=0,
             blocked=False,
-            profile_pic_url=courseInfo.get("profile_pic_url", ""),
+            profile_pic_url=courseInfo.get("profile_pic_url", DEFAULT_PROFILE_IMG),
         )
         self.session.add(c)
         self.session.commit()
@@ -132,7 +136,6 @@ class DB:
             "limit": userFilters.get("limit", DEFAULT_LIMIT),
         }
         query = self._buildQuery(table, columns=[column], filters=filters)
-        self._parseResult(self.session.execute(text(query)))
         return self._parseResult(self.session.execute(text(query)))
 
     def blockCourse(self, courseId: int):
@@ -202,7 +205,10 @@ class DB:
             columns=["status"],
             filters={"id_course": courseId, "id_student": userId},
         )
-        return self.session.execute(text(query))[0].get("status")
+        result = self._parseResult(self.session.execute(text(query)))
+        if not result:
+            return ""
+        return result[0]
 
     def updateSubscriberStatus(self, courseId: int, courseStatus: str, userId: int):
         query = (
