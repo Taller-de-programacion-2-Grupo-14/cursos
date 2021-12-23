@@ -12,6 +12,7 @@ create table courses(
     created_at timestamp default (now()),
     updated_at timestamp default (now()),
     blocked boolean default (false),
+    pile_pic_url varchar(1000) default (''),
     primary key(id),
     unique (name, creator_id)
 );
@@ -36,4 +37,15 @@ create table favoriteCourses(
     user_id int not null,
     foreign key (course_id) references courses(id) on delete cascade,
     primary key (course_id, user_id)
+);
+
+create table multimedia(
+    course_id int not null,
+    title varchar(255) default (''),
+    tag varchar(255) default (''),
+    url varchar(1000) not null,
+    created_at timestamp default (now()),
+    updated_at timestamp default (now()),
+    foreign key (course_id) references courses(id) on delete cascade,
+    primary key (course_id, url)
 );

@@ -19,8 +19,8 @@ class CourseController:
             self.service.getCourses(userId, courseFilters)
         )
 
-    def handleDelete(self, courseId, userId):
-        self.service.deleteCourse(courseId, userId)
+    def handleCancel(self, courseId, userId):
+        self.service.cancelCourse(courseId, userId)
         return {"message": "Course deleted correctly", "status": status.HTTP_200_OK}
 
     def handleEdit(self, courseNewInfo):
@@ -35,6 +35,13 @@ class CourseController:
         self.service.removeCollaborator(removeCollaborator)
         return {
             "message": "Collaborator correctly removed",
+            "status": status.HTTP_200_OK,
+        }
+
+    def handleSendCollaborationRequest(self, collaborationRequest):
+        response = self.service.sendCollaborationRequest(collaborationRequest)
+        return {
+            "message": f"message {response} sent correctly",
             "status": status.HTTP_200_OK,
         }
 
@@ -93,6 +100,31 @@ class CourseController:
         return self._getListCoursesResponse(
             self.service.getHistorical(userId, historicalFilters)
         )
+
+    def handleUpdateSubscriberStatus(self, subscriberGrades):
+        self.service.updateSubscriberStatus(subscriberGrades)
+        return {
+            "message": "Subscriber status updated correctly",
+            "status": status.HTTP_200_OK,
+        }
+
+    def handleSendNotification(self, notification):
+        self.service.sendNotification(notification)
+        return {
+            "message": "message sent correctly",
+            "status": status.HTTP_200_OK,
+        }
+
+    def handleGetSummaryInformation(self, summary):
+        response = self.service.getSummaryInformation(summary)
+        return {"message": response, "status": status.HTTP_200_OK}
+
+    def handleAddMultimedia(self, courseId, multimedia):
+        self.service.addMultimedia(courseId, multimedia)
+        return {"message": "Multimedia added correctly", "status": status.HTTP_200_OK}
+
+    def handleGetMultimedia(self, courseId):
+        return self._getListCoursesResponse(self.service.getMultimedia(courseId))
 
     def _getListCoursesResponse(self, coursesList):
         return {"message": coursesList, "status": self._getCorrectStatus(coursesList)}

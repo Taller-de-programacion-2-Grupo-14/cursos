@@ -73,6 +73,9 @@ paths:
           name: offset
           example: 0
         - in: query
+          name: last_created
+          example: false
+        - in: query
           name: limit
           example: 500
         - in: header
@@ -115,6 +118,102 @@ paths:
                 $ref: '#/components/schemas/courseInfo'
         '404':
           description: Curso no existe
+
+  '/courses/multimedia/{id}':
+    'post':
+      tags:
+        - Course
+      description: Agrega un archivo multimedia (Foto o Video) al curso
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+          required: true
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido del creador
+      requestBody:
+        description: body para el posteo del archivo multimedia
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/addMultimedia'
+      responses:
+        '200':
+          description: Todo okay
+        '208':
+          description: El contenido multimedia ya existe en el curso
+        '400':
+          description: Bad Request
+        '401':
+          description: Token invalido o Invalid user action
+        '403':
+          description: No token provisto
+        '404':
+          description: Curso no encontrado
+
+    'get':
+      tags:
+        - Course
+      description: Obtiene los archivos multimedia de un curso
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+          required: true
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido del creador
+      responses:
+        '200':
+          description: Todo okay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getMultimedia'
+        '400':
+          description: Bad Request
+        '401':
+          description: Token invalido o Invalid user action
+        '403':
+          description: No token provisto
+        '404':
+          description: Curso no encontrado
+
+    'delete':
+      tags:
+        - Course
+      description: Borra el contenido multimedia de un curso
+      parameters:
+        - in: path
+          name: id
+          description: id del curso
+          required: true
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido del creador
+      requestBody:
+        description: body para eliminar un arvhivo multimedia
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/deleteMultimedia'
+      responses:
+        '200':
+          description: Todo okay
+        '400':
+          description: Bad Request
+        '401':
+          description: Token invalido o Invalid user action
+        '403':
+          description: No token provisto
+        '404':
+          description: Curso no encontrado o archivo no encontrado
 
   '/courses/{id}':
     'delete':
@@ -205,6 +304,35 @@ paths:
           description: No token provisto
         '404':
           description: El curso no existe
+
+  '/courses/collaborators/send_request':
+    'post':
+      tags:
+        - Course
+      description: Envia la solicitud para ser colaborador de un curso
+      parameters:
+        - in: header
+          name: x-access-token
+          required: true
+          description: token recibido del creador del curso
+      requestBody:
+        description: Body para enviar la solicitud
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/sendCollaborationRequest'
+      responses:
+        '200':
+          description: Solicitud enviada correctamente
+        '208':
+          description: Ya es un colaborador del curso
+        '401':
+          description: Token invalido
+        '403':
+          description: No token provisto
+        '404':
+          description: El curso no existe o el usuario no existe
 
   '/courses/collaborators/remove':
     'delete':
@@ -322,6 +450,26 @@ paths:
                 $ref: '#/components/schemas/mySubscriptions'
         '204':
           description: No content
+
+  '/notification':
+    'post':
+      tags:
+        - Notification
+      description: Envia una notificacion a un usuario
+      requestBody:
+        description: Body para enviar la notificacion
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/notification'
+      responses:
+        '200':
+          description: Notificacion enviada correctamente
+        '400':
+          description: Bad request
+        '404':
+          description: El usuario no existe
 
   '/courses/users/{id}':
     'get':
@@ -632,6 +780,9 @@ components:
         location:
           type: string
           example: 'Obera'
+        profile_pic_url:
+          type: string
+          example: 'url_a_la_pic_del_curso'
 
     coursesList:
       type: object
@@ -690,6 +841,30 @@ components:
         updated_at:
           type: string
           example: 'timestamp, swagger no tiene'
+        profile_pic_url:
+          type: string
+          example: 'url_a_la_pic_del_curso'
+        multimedia:
+          type: array
+          description: array de JS Objects que contienen la multimedia del curso
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+                description: Titulo del archivo multimedia
+                example: 'Por mil noches (emotivo)'
+              url:
+                type: string
+                description: url del archivo multimedia
+                example: 'url_al_archivo_multimedia'
+              created_at:
+                type: string
+                description: ES UN TIMESTAMP
+              tag:
+                type: string
+                description: Es opcional, para identificar mejor al archivo multimedia
+                example: 'video de por mil noches'
 
     editCourse:
       type: object
@@ -737,6 +912,16 @@ components:
         is_subscribed:
           type: boolean
           example: false
+        liked:
+          type: boolean
+          example: false
+        can_create_exams:
+          type: boolean
+          example: true
+        subscriber_course_status:
+          type: string
+          description: Describe el estado de un estudiante en el curso. Si es el creador, un colaborador o no esta suscrito al curso este campo es una CADENA VACIA
+          example: ''
         subscription:
           type: string
           example: 'premium'
@@ -767,6 +952,30 @@ components:
         updated_at:
           type: string
           example: 'timestamp, swagger no tiene'
+        profile_pic_url:
+          type: string
+          example: 'url_a_la_pic_del_curso'
+        multimedia:
+          type: array
+          description: array de JS Objects que contienen la multimedia del curso
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+                description: Titulo del archivo multimedia
+                example: 'Por mil noches (emotivo)'
+              url:
+                type: string
+                description: url del archivo multimedia
+                example: 'url_al_archivo_multimedia'
+              created_at:
+                type: string
+                description: ES UN TIMESTAMP
+              tag:
+                type: string
+                description: Es opcional, para identificar mejor al archivo multimedia
+                example: 'video de por mil noches'
 
     courseAddCollaborator:
       type: object
@@ -830,19 +1039,107 @@ components:
       properties:
         favCourses:
           type: array
-          description: Es un array en el cual cada elemento contiene TODA la informacion de un curso faveado
+          description: Es un array en el cual cada elemento contiene TODA la informacion de un curso faveado (igual que get courses)
 
     historical:
       type: object
       properties:
         historical:
           type: array
-          description: Es un array en el cual cada elemento contiene TODA la informacion de un curso que aprobe, desaprobe o estoy realizando
+          description: Es un array en el cual cada elemento contiene TODA la informacion de un curso que aprobe, desaprobe o estoy realizando (igual que get courses)
 
     collaborations:
       type: object
       properties:
         collaborations:
           type: array
-          description: Es un array en el cual cada elemento contiene TODA la informacion de un curso en el cual soy colaborador
+          description: Es un array en el cual cada elemento contiene TODA la informacion de un curso en el cual soy colaborador (igual que get courses)
 
+    sendCollaborationRequest:
+      type: object
+      required:
+        - id
+        - email_collaborator
+      properties:
+        id:
+          type: integer
+          description: Id del curso
+          example: 18
+        email_collaborator:
+          type: string
+          description: email del usuario al que se le va a enviar la solicitud
+          example: 'ubademy.14@gmail.com'
+
+    notification:
+      type: object
+      required:
+        - title
+        - body
+        - user_id
+      properties:
+        title:
+          type: string
+          description: Titulo de la notificacion
+          example: 'Temaiken'
+        body:
+          type: string
+          description: Id del usuario que decide enviar la solicitud
+          example: 'Hola que tal tu como estas? dime si eres feliz'
+        user_id:
+          type: integer
+          description: id del usuario al que se le envia la notificacion
+          example: 3
+
+    addMultimedia:
+      type: object
+      required:
+        - title
+        - url
+      properties:
+        title:
+          type: string
+          description: Titulo del archivo multimedia
+          example: 'Por mil noches (emotivo)'
+        url:
+          type: string
+          description: url al archivo multimedia
+          example: 'https://www.youtube.com/watch?v=5Kv4n18IGmo'
+        tag:
+          type: string
+          description: OPCIONAL. Para ordernar mejor despues los archivos multimedia
+          example: 'unTag'
+
+    getMultimedia:
+      type: object
+      properties:
+        multimedia:
+          type: array
+          description: array de JS Objects que contienen la multimedia del curso
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+                description: Titulo del archivo multimedia
+                example: 'Por mil noches (emotivo)'
+              url:
+                type: string
+                description: url del archivo multimedia
+                example: 'https://www.instagram.com/ignacio_carol_lugones/'
+              created_at:
+                type: string
+                description: ES UN TIMESTAMP
+              tag:
+                type: string
+                description: Es opcional, para identificar mejor al archivo multimedia
+                example: 'Sigan al chicho tetera'
+
+    deleteMultimedia:
+      type: object
+      required:
+        url
+      properties:
+        url:
+          type: string
+          description: 'link al archivo multimedia'
+          example: 'unLink'

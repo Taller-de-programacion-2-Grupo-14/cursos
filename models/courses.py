@@ -18,3 +18,4 @@ class Courses(Base):
     created_at = Column(DateTime(), default=datetime.now)
     updated_at = Column(DateTime(), default=datetime.now, onupdate=datetime.now)
     blocked = Column(Boolean(), default=False)
+    profile_pic_url = Column(String(1000), default="")

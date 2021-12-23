@@ -1,3 +1,4 @@
+from typing import List
 from pydantic import BaseModel, Field, validator
 from exceptions.CourseException import InvalidSubscriptionType
 
@@ -13,6 +14,7 @@ class CreateCourseSchema(BaseModel):
     subscription: str
     location: str = Field(min_length=3, max_length=255)
     user_id: int
+    profile_pic_url: str
 
     @validator("subscription")
     def validSubscriptionType(cls, subscription):
@@ -53,3 +55,32 @@ class UserSchema(BaseModel):
 class FavCourseSchema(BaseModel):
     user_id: int
     id: int
+
+
+class CollaborationRequest(BaseModel):
+    email_collaborator: str
+    user_id: int
+    id: int
+
+
+class SubscriberGradesSchema(BaseModel):
+    user_id: int
+    course_id: int
+    grades: List[str]
+
+
+class NotificationSchema(BaseModel):
+    title: str
+    body: str
+    user_id: int
+
+
+class SummarySchema(BaseModel):
+    course_id: int
+    user_id: int
+
+
+class MultimediaSchema(BaseModel):
+    title: str
+    url: str
+    user_id: int

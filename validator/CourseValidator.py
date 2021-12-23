@@ -96,7 +96,6 @@ class CourseValidator:
         self.raiseExceptionIfUserIsBlocked(userData)
         if self.isACollaborator(courseId, userData["user_id"]):
             raise IsAlreadyACollaborator
-        return True
 
     def raiseExceptionIfUserIsBlocked(self, userData):
         if userData.get("blocked", False):

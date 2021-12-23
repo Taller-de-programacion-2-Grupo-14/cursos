@@ -1,16 +1,27 @@
 from requests import HTTPError
 from typing import List
 from exceptions.CourseException import *
+from external.exams import Exams
 from external.users import Users
+from notifications.NotificationManager import NotificationManager
 from persistence.postgre import DB
 from validator.CourseValidator import CourseValidator
 
 
 class CourseService:
-    def __init__(self, database: DB, usersClient: Users):
+    def __init__(
+        self,
+        database: DB,
+        courseValidator: CourseValidator,
+        usersClient: Users,
+        examsClient: Exams,
+        notification: NotificationManager,
+    ):
         self.db = database
         self.userClient = usersClient
-        self.courseValidator = CourseValidator(database)
+        self.examsClient = examsClient
+        self.courseValidator = courseValidator
+        self.notification = notification
 
     def addCourse(self, courseInfo):
         if self.courseValidator.hasACourseWithTheSameName(
@@ -27,17 +38,20 @@ class CourseService:
         actualUserData = usersData[userId]
         if not self.courseValidator.canViewCourse(course, actualUserData):
             raise CourseDoesNotExist
+        self._addMultimediaIntoCourseData([course])
         self._addExtraData(course, usersData[course["creator_id"]], actualUserData)
         return course
 
     def getCourses(self, userId, courseFilters):
         courses = self.db.getCourses(courseFilters)
+        self._addMultimediaIntoCourseData(courses)
         return self._filterCourses(courses, userId, courseFilters)
 
-    def deleteCourse(self, courseId, userId):
+    def cancelCourse(self, courseId, userId):
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId)
         self.courseValidator.raiseExceptionIfIsNotTheCourseCreator(courseId, userId)
-        self.db.deleteCourse(courseId)
+        # ToDo: send notificaction
+        self.db.cancelCourse(courseId)
 
     def editCourse(self, courseNewInfo):
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseNewInfo["id"])
@@ -56,10 +70,10 @@ class CourseService:
     def addCollaborator(self, collaborator):
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(collaborator["id"])
         userData = self.getUserData(collaborator["user_id"])
-        if self.courseValidator.raiseExceptionIfCanNotCollaborate(
+        self.courseValidator.raiseExceptionIfCanNotCollaborate(
             collaborator["id"], userData
-        ):
-            self.db.addCollaborator(collaborator)
+        )
+        self.db.addCollaborator(collaborator)
 
     def removeCollaborator(self, removeCollaborator):
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(
@@ -162,6 +176,82 @@ class CourseService:
         courses = self.db.getHistorical(userId, historicalFilters)
         return self._filterCourses(courses, userId, historicalFilters)
 
+    def sendCollaborationRequest(self, collaborationRequest):
+        courseId = collaborationRequest["id"]
+        self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId)
+        self.courseValidator.raiseExceptionIfIsNotTheCourseCreator(
+            courseId, collaborationRequest["user_id"]
+        )
+        userData = self.getUserData(collaborationRequest["email_collaborator"])
+        if userData["user_id"] == collaborationRequest["user_id"]:
+            raise InvalidUserAction
+        self.courseValidator.raiseExceptionIfCanNotCollaborate(courseId, userData)
+        userToken = self.getUserToken(userData["user_id"])
+        courseData = self.db.getCourse(courseId)
+        body = (
+            f"Hola {userData['first_name'] + userData['last_name']},"
+            f"queres ser colaborador en el curso {courseData['name']}?"
+        )
+        return self.notification.collaborationRequest(userToken, courseId, body)
+
+    def updateSubscriberStatus(self, subscriberGrades):
+        course = self.db.getCourse(subscriberGrades["course_id"])
+        if course is None:
+            raise CourseDoesNotExist
+        amountExams = course["exams"]
+        passedExams, failedExams = self._getGrades(subscriberGrades["grades"])
+        passedThreshold = amountExams // 2 + 1
+        failedThreshold = amountExams - passedThreshold
+        courseStatus = None
+        if failedExams > failedThreshold:
+            courseStatus = "failed"
+        elif passedExams >= passedThreshold:
+            courseStatus = "approved"
+        token = self.getUserToken(subscriberGrades["user_id"])
+        if courseStatus is not None:
+            self.db.updateSubscriberStatus(
+                subscriberGrades["course_id"], courseStatus, subscriberGrades["user_id"]
+            )
+            if token is not None:
+                self.notification.courseFinished(token, course["name"], courseStatus)
+        elif token is not None:
+            self.notification.sendNotification(
+                token,
+                "Examen corregido",
+                f"Tu examen del curso '{course['name']}' fue corregido",
+            )
+
+    def sendNotification(self, notification):
+        userToken = self.getUserToken(notification["user_id"])
+        if userToken is not None:
+            self.notification.sendNotification(
+                userToken, notification["title"], notification["body"]
+            )
+
+    def getSummaryInformation(self, summary):
+        self.courseValidator.raiseExceptionIfCourseDoesNotExists(summary["course_id"])
+        course = self.db.getSummaryInformation(summary["course_id"])
+        userData = self.getUserData(summary["user_id"])
+        course["can_edit"] = self._canEdit(course, userData)
+        course["can_collaborate"] = self._canCollaborate(course, userData)
+        course["is_subscribed"] = self.courseValidator.isSubscribed(
+            course["id"], userData["user_id"]
+        )
+        course["subscriber_course_status"] = self._getSubscriberCourseStatus(
+            course, userData
+        )
+        return course
+
+    def addMultimedia(self, courseId, multimedia):
+        self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId)
+        self.courseValidator.raiseExceptionIfIsNotTheCourseCreator(
+            courseId, multimedia["user_id"]
+        )
+        self.db.addMultimedia(courseId, multimedia)
+
+    def getMultimedia(self, courseId):
+        return self.db.getMultimedia(courseId)
+
     # Auxiliary Functions
     def _filterCourses(
         self, courses: List[dict], userId: int, courseFilters: dict = None
@@ -188,6 +278,11 @@ class CourseService:
         courseData["is_subscribed"] = self.courseValidator.isSubscribed(
             courseData["id"], userData["user_id"]
         )
+        courseData["liked"] = self._isLiked(courseData["id"], userData["user_id"])
+        courseData["can_create_exams"] = self._canCreateExams(courseData)
+        courseData["subscriber_course_status"] = self._getSubscriberCourseStatus(
+            courseData, userData
+        )
 
     def _canEdit(self, courseData: dict, userData: dict):
         return (
@@ -212,8 +307,26 @@ class CourseService:
             and self.courseValidator.canCollaborate(courseData["id"], userData)
         )
 
+    def _isLiked(self, courseId: int, userId: int):
+        return courseId in self.db.getCourseIdsLikedBy(userId)
+
+    def _canCreateExams(self, courseData: dict):
+        return (
+            courseData["can_edit"]
+            and len(self.getPublishedExams(courseData["id"], courseData["creator_id"]))
+            < courseData["exams"]
+        )
+
+    def _getSubscriberCourseStatus(self, courseData: dict, userData: dict):
+        if (
+            courseData["can_edit"]
+            or courseData["can_collaborate"]
+            or not courseData["is_subscribed"]
+        ):
+            return ""
+        return self.db.getSubscriberCourseStatus(courseData["id"], userData["user_id"])
+
     def _getUsersData(self, courses: List[dict], userId: int):
-        # ToDo: rename this function
         ids = {userId}
         for course in courses:
             ids.add(course["creator_id"])
@@ -225,6 +338,18 @@ class CourseService:
 
     def _getCourseName(self, courseId):
         return self.db.getCourse(courseId)["name"]
+
+    def _getGrades(self, grades):
+        passedExams = 0
+        failedExams = 0
+        for grade in grades:
+            passedExams += int(grade == "pass")
+            failedExams += int(grade == "fail")
+        return passedExams, failedExams
+
+    def _addMultimediaIntoCourseData(self, courses: List[dict]):
+        for course in courses:
+            course["multimedia"] = self.db.getMultimedia(course["id"])
 
     def getUserData(self, userId):
         try:
@@ -239,6 +364,21 @@ class CourseService:
         except HTTPError as e:
             print(f"exception while getting user f{e}")
             raise UserNotFound()
+
+    def getUserToken(self, userId: int):
+        try:
+            return self.userClient.getUserToken(userId).get("token")
+        except HTTPError as e:
+            print(f"exception while getting user token f{e}")
+            raise TokenNotFound()
+
+    def getPublishedExams(self, courseId, userId):
+        try:
+            exams = self.examsClient.getExams(courseId, userId)
+            return [exam for exam in exams if exam.get("status", "") == "published"]
+        except HTTPError as e:
+            print(f"exception while getting course exams f{e}")
+            raise ExamsNotFound()
 
     def _filterUserByName(self, filters, user, prefix=""):
         if filters is None:

@@ -3,6 +3,7 @@ from fastapi import FastAPI, Request, status, Depends
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
+from external.exams import Exams
 from external.users import Users
 from persistence.postgre import DB
 from service.Course import CourseService
@@ -12,8 +13,8 @@ from exceptions.CourseException import CourseException
 from queryParams.QueryParams import *
 from sqlalchemy import create_engine
 import yaml
-
-# import uvicorn  # For debugging
+from notifications.NotificationManager import NotificationManager
+from validator.CourseValidator import CourseValidator
 
 dbUrl = os.environ.get("DATABASE_URL")
 if not dbUrl.startswith("postgresql"):
@@ -22,7 +23,12 @@ print(f"url to connect is: {dbUrl}")
 engine = create_engine(dbUrl, echo=True, future=True)
 app = FastAPI()
 userSearcher = Users()
-courseService = CourseService(DB(engine), userSearcher)
+examsClient = Exams()
+notificationManager = NotificationManager()
+db = DB(engine)
+courseService = CourseService(
+    db, CourseValidator(db), userSearcher, examsClient, notificationManager
+)
 courseController = CourseController(courseService)
 
 
@@ -51,8 +57,8 @@ def editCourse(courseId: int, courseNewInfo: EditCourseInfoSchema):
 
 
 @app.delete("/courses/{courseId}")
-def deleteCourse(courseId: int, user: UserSchema):
-    return courseController.handleDelete(courseId, user.user_id)
+def cancelCourse(courseId: int, user: UserSchema):
+    return courseController.handleCancel(courseId, user.user_id)
 
 
 @app.post("/courses/collaborators")
@@ -63,6 +69,11 @@ def addCollaborator(collaborator: CollaboratorSchema):
 @app.delete("/courses/collaborators/remove")
 def removeCollaborator(collaborator: RemoveCollaboratorSchema):
     return courseController.handleRemoveCollaborator(collaborator.dict())
+
+
+@app.post("/courses/collaborators/send_request")
+def sendCollaborationRequest(collaborationRequest: CollaborationRequest):
+    return courseController.handleSendCollaborationRequest(collaborationRequest.dict())
 
 
 @app.post("/courses/subscription/{courseId}")
@@ -144,6 +155,31 @@ def removeFavorite(removeFavCourse: FavCourseSchema):
     return courseController.handleRemoveFavoriteCourse(removeFavCourse.dict())
 
 
+@app.patch("/courses/update/subscriber_status")
+def updateSubscriberStatus(subscriberGrades: SubscriberGradesSchema):
+    return courseController.handleUpdateSubscriberStatus(subscriberGrades.dict())
+
+
+@app.post("/notification")
+def sendNotification(notification: NotificationSchema):
+    return courseController.handleSendNotification(notification.dict())
+
+
+@app.get("/courses/summary_information")
+def getSummaryInformation(summary: SummarySchema):
+    return courseController.handleGetSummaryInformation(summary.dict())
+
+
+@app.post("/courses/multimedia/{courseId}")
+def addMultimedia(courseId: int, multimedia: MultimediaSchema):
+    return courseController.handleAddMultimedia(courseId, multimedia.dict())
+
+
+@app.get("/courses/multimedia/{courseId}")
+def getMultimedia(courseId: int):
+    return courseController.handleGetMultimedia(courseId)
+
+
 @app.get("/doc-yml")
 def getSwagger():
     with open("docs/swagger.yaml") as f:
@@ -196,8 +232,3 @@ def handleUnknownException(request: Request, exc: Exception):
             }
         ),
     )
-
-
-# For debugging
-# if __name__ == "__main__":
-#     uvicorn.run(app, port=8000)

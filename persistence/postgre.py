@@ -4,6 +4,7 @@ from models.courses import Courses
 from models.collaborators import Collaborators
 from models.enrolled import Enrolled
 from models.favoriteCourses import FavoriteCourses
+from models.multimedia import Multimedia
 import re
 
 DEFAULT_OFFSET = 0
@@ -16,6 +17,7 @@ SKIP_FILTERS = [
     "creator_last_name",
     "first_name",
     "last_name",
+    "last_created",
 ]
 
 
@@ -43,6 +45,7 @@ class DB:
             location=location,
             cancelled=0,
             blocked=False,
+            profile_pic_url=courseInfo.get("profile_pic_url", ""),
         )
         self.session.add(c)
         self.session.commit()
@@ -60,7 +63,7 @@ class DB:
         query = self._buildQuery("courses", filters=courseFilters)
         return self._parseResult(self.session.execute(text(query)))
 
-    def deleteCourse(self, courseId):
+    def cancelCourse(self, courseId):
         query = self._buildQuery(
             "courses", "UPDATE", ["cancelled = 1"], filters={"id": courseId}
         )
@@ -193,6 +196,45 @@ class DB:
         )
         return {record.course_id for record in self.session.execute(text(query))}
 
+    def getSubscriberCourseStatus(self, courseId: int, userId: int):
+        query = self._buildQuery(
+            "enrolled",
+            columns=["status"],
+            filters={"id_course": courseId, "id_student": userId},
+        )
+        return self.session.execute(text(query))[0].get("status")
+
+    def updateSubscriberStatus(self, courseId: int, courseStatus: str, userId: int):
+        query = (
+            f"UPDATE enrolled SET status = '{courseStatus}' "
+            f"WHERE id_course = {courseId} AND id_student = {userId}"
+        )
+        self.session.execute(text(query))
+        self.session.commit()
+
+    def getSummaryInformation(self, courseId: int):
+        query = self._buildQuery(
+            "courses",
+            columns=["id", "creator_id", "exams", "blocked", "cancelled"],
+            filters={"id": courseId},
+        )
+        return self._parseResult(self.session.execute(text(query)))[0]
+
+    def addMultimedia(self, courseId, multimedia):
+        multimedia = Multimedia(
+            course_id=courseId,
+            title=multimedia.get("title", ""),
+            url=multimedia.get("url", ""),
+            tag=multimedia.get("tag", ""),
+        )
+        self.session.add(multimedia)
+        self.session.commit()
+
+    def getMultimedia(self, courseId: int):
+        query = self._buildQuery("multimedia", filters={"course_id": courseId})
+        multimedia = self._parseResult(self.session.execute(text(query)))
+        return multimedia if multimedia is not None else []
+
     def _buildQuery(self, tableName, operation="SELECT", columns=None, filters=None):
         operation = operation.upper()
         if columns is None:
@@ -230,6 +272,8 @@ class DB:
                 filterQuery += f"LOWER({filterName}) LIKE '%{value}%'"
             else:
                 filterQuery += f"{filterName} = {value}"
+        if filters.get("last_created", False):
+            filterQuery += " ORDER BY updated_at DESC"
         filterQuery += (
             f" OFFSET {filters.get('offset', DEFAULT_OFFSET)} "
             f"LIMIT {filters.get('limit', DEFAULT_LIMIT)}"
