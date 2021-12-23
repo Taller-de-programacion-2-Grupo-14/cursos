@@ -10,12 +10,12 @@ from validator.CourseValidator import CourseValidator
 
 class CourseService:
     def __init__(
-        self, database: DB, usersClient: Users, examsClient: Exams, notification: NotificationManager
+        self, database: DB, courseValidator: CourseValidator, usersClient: Users, examsClient: Exams, notification: NotificationManager
     ):
         self.db = database
         self.userClient = usersClient
         self.examsClient = examsClient
-        self.courseValidator = CourseValidator(database)
+        self.courseValidator = courseValidator
         self.notification = notification
 
     def addCourse(self, courseInfo):
@@ -194,34 +194,30 @@ class CourseService:
         passedThreshold = amountExams // 2 + 1
         failedThreshold = amountExams - passedThreshold
         courseStatus = None
-        print(f"Grades: {subscriberGrades['grades']}")
-        print(f"userId: {subscriberGrades['user_id']}")
-        print(f"courseId: {subscriberGrades['course_id']}")
-        print(f"Passed Exams: {passedExams} --- Failed Exams: {failedExams}")
         if failedExams > failedThreshold:
             courseStatus = "failed"
         elif passedExams >= passedThreshold:
             courseStatus = "approved"
-        # token = self.getUserToken(subscriberGrades["user_id"])
+        token = self.getUserToken(subscriberGrades["user_id"])
         if courseStatus is not None:
             self.db.updateSubscriberStatus(subscriberGrades["course_id"], courseStatus, subscriberGrades["user_id"])
-            # self.notification.courseFinished(
-            #     token,
-            #     course["name"],
-            #     courseStatus
-            # )
-        # else:
-            # self.notification.sendNotification(
-            #     token,
-            #     "Examen corregido",
-            #     f"Tu examen del curso '{course['name']}' fue corregido"
-            # )
+            if token is not None:
+                self.notification.courseFinished(
+                    token,
+                    course["name"],
+                    courseStatus
+                )
+        elif token is not None:
+            self.notification.sendNotification(
+                token,
+                "Examen corregido",
+                f"Tu examen del curso '{course['name']}' fue corregido"
+            )
 
     def sendNotification(self, notification):
         userToken = self.getUserToken(notification["user_id"])
-        return self.notification.sendNotification(
-            userToken, notification["title"], notification["body"]
-        )
+        if userToken is not None:
+            self.notification.sendNotification(userToken, notification["title"], notification["body"])
 
     def getSummaryInformation(self, summary):
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(summary["course_id"])
@@ -232,6 +228,7 @@ class CourseService:
         course["is_subscribed"] = self.courseValidator.isSubscribed(
             course["id"], userData["user_id"]
         )
+        course["subscriber_course_status"] = self._getSubscriberCourseStatus(course, userData)
         return course
 
     # Auxiliary Functions
