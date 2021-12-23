@@ -16,6 +16,7 @@ SKIP_FILTERS = [
     "creator_last_name",
     "first_name",
     "last_name",
+    "last_created"
 ]
 
 
@@ -253,6 +254,8 @@ class DB:
                 filterQuery += f"LOWER({filterName}) LIKE '%{value}%'"
             else:
                 filterQuery += f"{filterName} = {value}"
+        if filters.get("last_created", False):
+            filterQuery += " ORDER BY updated_at DESC"
         filterQuery += (
             f" OFFSET {filters.get('offset', DEFAULT_OFFSET)} "
             f"LIMIT {filters.get('limit', DEFAULT_LIMIT)}"

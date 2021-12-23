@@ -14,6 +14,7 @@ class CreateCourseSchema(BaseModel):
     subscription: str
     location: str = Field(min_length=3, max_length=255)
     user_id: int
+    profile_pic_url: str
 
     @validator("subscription")
     def validSubscriptionType(cls, subscription):
