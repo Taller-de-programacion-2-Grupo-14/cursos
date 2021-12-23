@@ -97,16 +97,13 @@ class CourseService:
     def addSubscriber(self, courseId, subscriberId):
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId)
         subscriberData = self.getUserData(subscriberId)
-        if self.courseValidator.raiseExceptionIfCanNotSubscribe(
-            courseId, subscriberData
-        ):
-            self.db.addSubscriber(courseId, subscriberId)
+        self.courseValidator.raiseExceptionIfCanNotSubscribe(courseId, subscriberData)
+        self.db.addSubscriber(courseId, subscriberId)
 
     def removeSubscriber(self, courseId, subscriberId):
         self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId)
         subscriberData = self.getUserData(subscriberId)
-        if self.courseValidator.raiseExceptionIfUserIsBlocked(subscriberData):
-            raise UserBlocked
+        self.courseValidator.raiseExceptionIfUserIsBlocked(subscriberData)
         if not self.courseValidator.isSubscribed(courseId, subscriberId):
             raise IsNotSubscribed
         self.db.removeSubscriber(courseId, subscriberId)
@@ -250,6 +247,7 @@ class CourseService:
         self.db.addMultimedia(courseId, multimedia)
 
     def getMultimedia(self, courseId):
+        self.courseValidator.raiseExceptionIfCourseDoesNotExists(courseId)
         return self.db.getMultimedia(courseId)
 
     # Auxiliary Functions
@@ -347,7 +345,7 @@ class CourseService:
             failedExams += int(grade == "fail")
         return passedExams, failedExams
 
-    def _addMultimediaIntoCourseData(self, courses: List[dict]):
+    def _addMultimediaIntoCourseData(self, courses):
         for course in courses:
             course["multimedia"] = self.db.getMultimedia(course["id"])
 
