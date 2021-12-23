@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel, Field, validator
 from exceptions.CourseException import InvalidSubscriptionType
 
@@ -84,3 +84,4 @@ class MultimediaSchema(BaseModel):
     title: str
     url: str
     user_id: int
+    tag: Optional[str] = ""
