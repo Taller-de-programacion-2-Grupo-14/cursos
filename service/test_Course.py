@@ -410,8 +410,8 @@ class TestCourses(unittest.TestCase):
         mockUsers = self._getMock(Users, attrsUsers)
         service = CourseService(mockDB, mockValidator, mockUsers, Mock(), Mock())
         result = service.getUsers(FAKE_COURSE_ID, FAKE_USER_ID, usersFilter)
-        self.assertEquals(len(result), 1)
-        self.assertEquals(result[0], {"first_name": "Rafa", "last_name": "Nadal"})
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0], {"first_name": "Rafa", "last_name": "Nadal"})
         mockValidator.raiseExceptionIfCourseDoesNotExists.assert_called_once_with(
             FAKE_COURSE_ID
         )
